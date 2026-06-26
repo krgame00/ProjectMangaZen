@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminOverview() {
   const totalUsers = await prisma.user.count();
   const totalMangas = await prisma.manga.count();
