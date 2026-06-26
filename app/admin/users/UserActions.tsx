@@ -1,0 +1,68 @@
+"use client";
+
+import { useTransition } from "react";
+import toast from "react-hot-toast";
+import { updateUserRoleAction, deleteUserAction } from "@/app/actions/admin";
+
+export function UserRoleSelect({ user }: { user: any }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleRoleChange = (newRole: string) => {
+    startTransition(async () => {
+      const res = await updateUserRoleAction(user.id, newRole);
+      if (res.success) {
+        toast.success("เปลี่ยนสิทธิ์สำเร็จ");
+      } else {
+        toast.error(res.error || "Failed to update role");
+      }
+    });
+  };
+
+  return (
+    <select
+      value={user.role}
+      onChange={(e) => handleRoleChange(e.target.value)}
+      disabled={isPending}
+      style={{
+        background: "var(--bg)", border: "1px solid var(--border)",
+        color: user.role === "admin" ? "var(--accent3)" : "var(--text)",
+        padding: "4px 8px", borderRadius: "6px", outline: "none",
+        opacity: isPending ? 0.5 : 1
+      }}
+    >
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
+    </select>
+  );
+}
+
+export function DeleteUserButton({ user }: { user: any }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    if (!confirm(`ยืนยันการลบบัญชีผู้ใช้ "${user.email}"?`)) return;
+
+    startTransition(async () => {
+      const res = await deleteUserAction(user.id);
+      if (res.success) {
+        toast.success("ลบผู้ใช้สำเร็จ");
+      } else {
+        toast.error(res.error || "Failed to delete");
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={handleDelete}
+      disabled={isPending}
+      style={{
+        background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "var(--danger)",
+        padding: "4px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "12px",
+        opacity: isPending ? 0.5 : 1
+      }}
+    >
+      {isPending ? "กำลังลบ..." : "ลบ"}
+    </button>
+  );
+}

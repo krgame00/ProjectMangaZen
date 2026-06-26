@@ -1,65 +1,19 @@
-"use client";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { UserRoleSelect, DeleteUserButton } from "./UserActions";
 
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+export default async function AdminUsers() {
+  const session = await getServerSession(authOptions);
+  
+  if ((session?.user as any)?.role !== "admin") {
+    redirect("/");
+  }
 
-export default function AdminUsers() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("/api/admin/users");
-      const data = await res.json();
-      setUsers(data);
-    } catch (e) {
-      toast.error("Failed to load users");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const handleRoleChange = async (id: string, newRole: string) => {
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole })
-      });
-      if (res.ok) {
-        toast.success("เปลี่ยนสิทธิ์สำเร็จ");
-        setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to update role");
-      }
-    } catch (e) {
-      toast.error("Error updating role");
-    }
-  };
-
-  const handleDelete = async (id: string, email: string) => {
-    if (!confirm(`ยืนยันการลบบัญชีผู้ใช้ "${email}"?`)) return;
-
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("ลบผู้ใช้สำเร็จ");
-        setUsers(users.filter(u => u.id !== id));
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to delete");
-      }
-    } catch (e) {
-      toast.error("เกิดข้อผิดพลาดในการลบ");
-    }
-  };
-
-  if (loading) return <div>กำลังโหลด...</div>;
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div>
@@ -82,32 +36,13 @@ export default function AdminUsers() {
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{user.name}</td>
                 <td style={{ padding: "12px 16px" }}>{user.email}</td>
                 <td style={{ padding: "12px 16px" }}>
-                  <select 
-                    value={user.role} 
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    style={{
-                      background: "var(--bg)", border: "1px solid var(--border)",
-                      color: user.role === "admin" ? "var(--accent3)" : "var(--text)",
-                      padding: "4px 8px", borderRadius: "6px", outline: "none"
-                    }}
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                  <UserRoleSelect user={user} />
                 </td>
                 <td style={{ padding: "12px 16px", color: "var(--text3)" }}>
                   {new Date(user.createdAt).toLocaleDateString("th-TH")}
                 </td>
                 <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                  <button 
-                    onClick={() => handleDelete(user.id, user.email)}
-                    style={{ 
-                      background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "var(--danger)",
-                      padding: "4px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "12px"
-                    }}
-                  >
-                    ลบ
-                  </button>
+                  <DeleteUserButton user={user} />
                 </td>
               </tr>
             ))}

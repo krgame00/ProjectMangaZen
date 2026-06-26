@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 interface MangaCardProps {
   id: string;
@@ -13,9 +14,15 @@ export default function MangaCard({ id, title, coverUrl, genre, isNew }: MangaCa
   return (
     <Link href={`/manga/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="manga-card">
-        <div className="manga-cover">
+        <div className="manga-cover relative h-full w-full">
           {coverUrl ? (
-            <img src={coverUrl} alt={title} />
+            <Image 
+              src={coverUrl} 
+              alt={title}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+              className="object-cover"
+            />
           ) : (
             <div className="manga-ph">
               📚

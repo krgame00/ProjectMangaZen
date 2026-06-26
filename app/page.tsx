@@ -20,14 +20,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   });
 
   const totalMangas = await prisma.manga.count();
-  const allChapters = await prisma.chapter.findMany({ select: { pages: true } });
-  const totalPages = allChapters.reduce((acc, ch) => {
-    try {
-      return acc + JSON.parse(ch.pages).length;
-    } catch {
-      return acc;
-    }
-  }, 0);
+  const allChaptersAgg = await prisma.chapter.aggregate({ _sum: { pageCount: true } });
+  const totalPages = allChaptersAgg._sum.pageCount || 0;
   const totalCategories = 6; // action, romance, comedy, fantasy, horror, scifi
 
   return (

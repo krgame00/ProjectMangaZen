@@ -15,28 +15,9 @@ export default function SearchPageClient({ query, count, children }: Props) {
   return (
     <>
       {/* Search Hero Banner */}
-      <div style={{
-        background: "linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "32px 28px",
-        marginBottom: "24px",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Decorative glow */}
-        <div style={{
-          position: "absolute", top: "-40px", right: "-40px",
-          width: "220px", height: "220px",
-          background: "radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-60px", left: "10%",
-          width: "180px", height: "180px",
-          background: "radial-gradient(circle, rgba(232,147,90,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
+      <div className="page-hero">
+        <div className="page-hero-glow-1" />
+        <div className="page-hero-glow-2" />
 
         {/* Back button row */}
         <Link href="/" style={{ textDecoration: "none" }}>
@@ -63,14 +44,7 @@ export default function SearchPageClient({ query, count, children }: Props) {
 
         {/* Big search icon + query */}
         <div style={{ display: "flex", alignItems: "flex-start", gap: "18px" }}>
-          <div style={{
-            width: "56px", height: "56px", flexShrink: 0,
-            background: "linear-gradient(135deg, var(--accent2), var(--accent))",
-            borderRadius: "16px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "24px",
-            boxShadow: "0 4px 20px rgba(167,139,250,0.35)",
-          }}>
+          <div className="page-hero-icon">
             🔍
           </div>
           <div>

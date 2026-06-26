@@ -25,8 +25,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <SearchPageClient query={q} count={results.length}>
       <div className="manga-grid">
-        {results.map((manga) => (
-          <MangaCard key={manga.id} {...manga} />
+        {results.map((manga, index) => (
+          <div key={manga.id} className="stagger-item" style={{ animationDelay: `${index * 0.05}s` }}>
+            <MangaCard {...manga} />
+          </div>
         ))}
       </div>
     </SearchPageClient>

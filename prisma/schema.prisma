@@ -36,6 +36,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Manga {
@@ -51,15 +52,22 @@ model Manga {
   updatedAt   DateTime   @updatedAt
   chapters    Chapter[]
   favorites   Favorite[]
+
+  @@index([createdAt])
+  @@index([genre, createdAt])
 }
 
 model Chapter {
   id        String   @id @default(uuid())
   title     String
   pages     String   // Store JSON stringified array of page data or URLs
+  pageCount Int      @default(0)
   mangaId   String
   manga     Manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([mangaId])
+  @@index([mangaId, createdAt])
 }
 
 model Favorite {
@@ -71,6 +79,8 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, mangaId])
+  @@index([userId])
+  @@index([mangaId])
 }
 
 model TranslationCache {

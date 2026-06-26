@@ -30,24 +30,14 @@ export default function FavoritesPage() {
   return (
     <>
       {/* Page Hero */}
-      <div style={{
-        position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, var(--surface) 0%, var(--surface2) 60%, #1a0f1e 100%)",
-        border: "1px solid var(--border)", borderRadius: "var(--radius)",
-        padding: "32px 28px", marginBottom: "24px",
-      }}>
-        <div style={{ position:"absolute", top:"-60px", right:"-40px", width:"260px", height:"260px",
-          background:"radial-gradient(circle, rgba(167,139,250,0.2) 0%, transparent 70%)", pointerEvents:"none" }} />
-        <div style={{ position:"absolute", bottom:"-50px", left:"5%", width:"200px", height:"200px",
-          background:"radial-gradient(circle, rgba(248,113,113,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+      <div className="page-hero">
+        <div className="page-hero-glow-1" />
+        <div className="page-hero-glow-2" />
 
         <div style={{ display:"flex", alignItems:"center", gap:"16px" }}>
-          <div style={{
-            width:"52px", height:"52px", borderRadius:"14px",
-            background:"linear-gradient(135deg, #f87171, var(--accent2))",
-            display:"flex", alignItems:"center", justifyContent:"center", fontSize:"22px",
-            boxShadow:"0 4px 20px rgba(248,113,113,0.35)", flexShrink:0,
-          }}>❤️</div>
+          <div className="page-hero-icon" style={{ background: "linear-gradient(135deg, #f87171, var(--accent2))", boxShadow: "0 8px 24px rgba(248,113,113,0.35)" }}>
+            ❤️
+          </div>
           <div>
             <div style={{ fontSize:"12px", color:"var(--text3)", textTransform:"uppercase", letterSpacing:"2px", marginBottom:"4px" }}>
               {lang === "en" ? "My Collection" : "คอลเล็กชันของฉัน"}
@@ -75,12 +65,12 @@ export default function FavoritesPage() {
 
       {/* Content */}
       {loading ? (
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"12px", padding:"60px 0", color:"var(--text3)" }}>
+        <div className="stagger-item" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"12px", padding:"60px 0", color:"var(--text3)" }}>
           <div style={{ width:"20px", height:"20px", border:"2px solid var(--border)", borderTopColor:"var(--accent2)", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
           {lang === "en" ? "Loading..." : "กำลังโหลด..."}
         </div>
       ) : favorites.length === 0 ? (
-        <div className="empty" style={{ padding:"60px 24px" }}>
+        <div className="empty stagger-item" style={{ padding:"60px 24px" }}>
           <div style={{ fontSize:"56px", marginBottom:"14px" }}>💔</div>
           <div style={{ fontSize:"16px", fontWeight:600, marginBottom:"8px" }}>
             {lang === "en" ? "No favorites yet" : "ยังไม่มีมังงะในรายการโปรด"}
@@ -99,7 +89,11 @@ export default function FavoritesPage() {
         </div>
       ) : (
         <div className="manga-grid">
-          {favorites.map(manga => <MangaCard key={manga.id} {...manga} />)}
+          {favorites.map((manga, index) => (
+            <div key={manga.id} className="stagger-item" style={{ animationDelay: `${index * 0.05}s` }}>
+              <MangaCard {...manga} />
+            </div>
+          ))}
         </div>
       )}
     </>

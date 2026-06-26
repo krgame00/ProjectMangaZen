@@ -43,3 +43,17 @@ next-env.d.ts
 /app/generated/prisma
 *.db
 *.db-journal
+
+# User uploaded content
+/public/uploads/
+
+# Agent configurations & skills
+/.agents/
+/.impeccable/
+/skills-lock.json
+
+# Scratchpad & temporary scripts
+/scratch/
+/refactor-reader.js
+/test-tg.js
+/setup-theme.js

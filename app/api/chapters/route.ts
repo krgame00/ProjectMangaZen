@@ -14,6 +14,7 @@ export async function POST(req: Request) {
         title,
         mangaId,
         pages: JSON.stringify(pages),
+        pageCount: pages.length,
       },
     });
 

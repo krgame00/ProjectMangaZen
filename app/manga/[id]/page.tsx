@@ -37,59 +37,37 @@ export default async function MangaDetail({ params }: { params: Promise<{ id: st
       {/* Back button */}
       <div style={{ marginBottom: "20px" }}>
         <Link href="/" style={{ textDecoration: "none" }}>
-          <button style={{
-            background: "transparent", border: "1px solid var(--border)",
-            color: "var(--text2)", padding: "8px 16px", borderRadius: "20px",
-            cursor: "pointer", fontSize: "13px", display: "inline-flex",
-            alignItems: "center", gap: "6px", transition: "all 0.2s",
-          }}>
+          <button className="btn-ghost">
             ← กลับหน้าหลัก
           </button>
         </Link>
       </div>
 
       {/* Hero Section */}
-      <div style={{
-        position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, var(--surface) 0%, var(--surface2) 60%, #1a1230 100%)",
-        border: "1px solid var(--border)", borderRadius: "var(--radius)",
-        padding: "28px", marginBottom: "24px",
-        display: "flex", gap: "28px", flexWrap: "wrap",
-      }}>
-        {/* Glow orbs */}
-        <div style={{ position:"absolute", top:"-60px", right:"-40px", width:"300px", height:"300px",
-          background:"radial-gradient(circle, rgba(232,147,90,0.15) 0%, transparent 70%)", pointerEvents:"none" }} />
-        <div style={{ position:"absolute", bottom:"-40px", left:"20%", width:"200px", height:"200px",
-          background:"radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
-
+      <div className="manga-hero">
         {/* Cover */}
-        <div style={{
-          width: "170px", flexShrink: 0, aspectRatio: "2/3",
-          borderRadius: "var(--radius)", overflow: "hidden",
-          border: "1px solid var(--border)", background: "var(--bg3)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "52px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}>
+        <div className="detail-cover">
           {manga.coverUrl
-            ? <img src={manga.coverUrl} alt={manga.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            ? <img src={manga.coverUrl} alt={manga.title} />
             : genreEmoji}
         </div>
 
         {/* Info */}
-        <div style={{ flex: 1, minWidth: "200px", display: "flex", flexDirection: "column", gap: "10px", zIndex: 1 }}>
+        <div className="manga-hero-info">
           {/* Genre badge */}
           <div style={{
-            display:"inline-flex", alignItems:"center", gap:"5px",
+            display:"inline-flex", alignItems:"center", gap:"6px",
             background:"rgba(232,147,90,0.12)", border:"1px solid rgba(232,147,90,0.3)",
-            color:"var(--accent)", padding:"3px 12px", borderRadius:"20px",
+            color:"var(--accent)", padding:"4px 12px", borderRadius:"20px",
             fontSize:"11px", fontWeight:700, width:"fit-content", textTransform:"uppercase", letterSpacing:"1px",
           }}>
             {genreEmoji} {manga.genre}
           </div>
 
-          <h1 style={{ fontSize:"26px", fontWeight:800, lineHeight:1.2, margin:0 }}>{manga.title}</h1>
+          <h1 className="detail-title">{manga.title}</h1>
+          
           {manga.author && (
-            <div style={{ color:"var(--text2)", fontSize:"14px", display:"flex", alignItems:"center", gap:"6px" }}>
+            <div className="detail-author">
               <span style={{ opacity:0.5 }}>by</span>
               <Link 
                 href={`/search?q=${encodeURIComponent(manga.author)}`} 
@@ -111,42 +89,47 @@ export default async function MangaDetail({ params }: { params: Promise<{ id: st
 
           {/* Tags */}
           {tags.length > 0 && (
-            <div style={{ display:"flex", gap:"6px", flexWrap:"wrap" }}>
+            <div className="dtags">
               {tags.map(tag => (
-                <span key={tag} style={{
-                  background:"var(--surface2)", border:"1px solid var(--border)",
-                  padding:"3px 10px", borderRadius:"12px", fontSize:"11px", color:"var(--text2)",
-                }}>#{tag}</span>
+                <span key={tag} className="dtag">#{tag}</span>
               ))}
             </div>
           )}
 
           {/* Description */}
           {manga.description && (
-            <p style={{ color:"var(--text2)", fontSize:"14px", lineHeight:1.8, margin:0, maxWidth:"540px" }}>
+            <p className="detail-desc">
               {manga.description}
             </p>
           )}
 
           {/* Stats row */}
-          <div style={{ display:"flex", gap:"16px", marginTop:"4px" }}>
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:"18px", fontWeight:800, color:"var(--accent)" }}>{manga.chapters.length}</div>
-              <div style={{ fontSize:"10px", color:"var(--text3)" }}>ตอน</div>
+          <div style={{ display:"flex", gap:"24px", marginTop:"8px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+              <div style={{ width:"40px", height:"40px", borderRadius:"12px", background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px" }}>📖</div>
+              <div>
+                <div style={{ fontSize:"22px", fontWeight:800, color:"var(--accent)", lineHeight:1 }}>{manga.chapters.length}</div>
+                <div style={{ fontSize:"11px", color:"var(--text3)", marginTop:"2px", textTransform:"uppercase", fontWeight:700 }}>ตอน</div>
+              </div>
             </div>
-            <div style={{ width:"1px", background:"var(--border)" }} />
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:"18px", fontWeight:800, color:"var(--accent3)" }}>
+            
+            <div style={{ width:"1px", background:"rgba(255,255,255,0.1)" }} />
+            
+            <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+              <div style={{ width:"40px", height:"40px", borderRadius:"12px", background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px" }}>
                 {manga.status === "completed" ? "✅" : "🔄"}
               </div>
-              <div style={{ fontSize:"10px", color:"var(--text3)" }}>
-                {manga.status === "completed" ? "จบแล้ว" : "กำลังออก"}
+              <div>
+                <div style={{ fontSize:"14px", fontWeight:800, color:"var(--accent3)", lineHeight:1, marginTop:"2px" }}>
+                  {manga.status === "completed" ? "จบแล้ว" : "กำลังออก"}
+                </div>
+                <div style={{ fontSize:"11px", color:"var(--text3)", marginTop:"4px", textTransform:"uppercase", fontWeight:700 }}>สถานะ</div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div style={{ display:"flex", gap:"12px", marginTop:"8px" }}>
+          <div className="detail-actions" style={{ marginTop: "12px" }}>
             <ResumeButton mangaId={id} firstChapterId={manga.chapters.length > 0 ? manga.chapters[0].id : undefined} />
             <FavoriteButton mangaId={id} />
             <DeleteMangaButton mangaId={id} />

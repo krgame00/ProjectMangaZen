@@ -23,7 +23,7 @@ export default function Navbar() {
     <>
       <nav>
         <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="nav-logo" style={{ cursor: "pointer" }}>Manga<span>Zen</span></div>
+          <div className="nav-logo">Manga<span>Zen</span></div>
         </Link>
         <SearchInput />
         <div className="nav-actions">
@@ -47,39 +47,23 @@ export default function Navbar() {
           </button>
           
           {session ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="nav-profile-group">
               {(session.user as any)?.role === "admin" && (
                 <Link href="/admin" style={{ textDecoration: 'none' }}>
-                  <button style={{
-                    background: "rgba(232,147,90,0.1)", border: "1px solid rgba(232,147,90,0.3)",
-                    color: "var(--accent)", padding: "6px 12px", borderRadius: "16px",
-                    fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px"
-                  }}>
+                  <button className="btn-admin">
                     <span>🛠️</span> <span>Admin</span>
                   </button>
                 </Link>
               )}
               <Link href="/profile" style={{ textDecoration: 'none' }}>
-              <div style={{
-                width: "36px", height: "36px", borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--accent), var(--accent2))",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "white", fontWeight: "bold", cursor: "pointer", border: "2px solid var(--border)",
-                boxShadow: "0 2px 10px rgba(232,147,90,0.3)"
-              }} title="Profile">
+              <div className="nav-profile" title="Profile">
                 {session.user?.name?.charAt(0).toUpperCase() || "U"}
               </div>
             </Link>
             </div>
           ) : (
             <Link href="/login" style={{ textDecoration: 'none' }}>
-              <button style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                color: "var(--text)", padding: "8px 16px", borderRadius: "20px",
-                fontSize: "13px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text)"; }}>
+              <button className="btn-login">
                 เข้าสู่ระบบ
               </button>
             </Link>

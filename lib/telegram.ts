@@ -71,3 +71,81 @@ export async function uploadToTelegram(driveFileId: string): Promise<string> {
     
     return fileId;
 }
+
+export async function uploadBufferToTelegram(
+    buffer: Buffer, 
+    filename: string, 
+    mimeType: string, 
+    maxRetries: number = 5
+): Promise<string> {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+        throw new Error("Telegram configuration missing in .env");
+    }
+    
+    if (filename.toLowerCase().endsWith('.webp')) {
+        filename = filename.replace(/\.webp$/i, '.jpg');
+    }
+    if (mimeType.includes('webp')) {
+        mimeType = 'image/jpeg';
+    }
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const form = new FormData();
+        form.append('chat_id', TELEGRAM_CHAT_ID);
+        // @ts-ignore
+        const blob = new Blob([buffer], { type: mimeType });
+        form.append('document', blob, filename);
+        
+        try {
+            const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
+                method: 'POST',
+                body: form
+            });
+            
+            const tgData = await tgRes.json();
+            
+            // Handle Rate Limiting
+            if (tgRes.status === 429) {
+                const retryAfter = tgData.parameters?.retry_after || Math.pow(2, attempt);
+                console.warn(`[Telegram API] Rate limit hit (429). Retrying after ${retryAfter} seconds (Attempt ${attempt + 1}/${maxRetries})...`);
+                
+                if (attempt === maxRetries) {
+                    throw new Error(`Telegram rate limit exceeded. Max retries (${maxRetries}) reached.`);
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                continue; // Retry the upload
+            }
+            
+            if (!tgData.ok) {
+                if (attempt < maxRetries) {
+                    console.warn(`[Telegram API] Upload failed: ${JSON.stringify(tgData)}. Retrying...`);
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                    continue;
+                }
+                throw new Error(`Telegram upload failed permanently: ${JSON.stringify(tgData)}`);
+            }
+            
+            let fileId;
+            if (tgData.result.document) {
+                fileId = tgData.result.document.file_id;
+            } else if (tgData.result.photo) {
+                fileId = tgData.result.photo[tgData.result.photo.length - 1].file_id;
+            } else if (tgData.result.sticker) {
+                fileId = tgData.result.sticker.file_id;
+            } else {
+                throw new Error(`Unexpected Telegram response format: ${JSON.stringify(tgData)}`);
+            }
+            
+            return fileId;
+        } catch (error: any) {
+            if (attempt === maxRetries) {
+                throw error;
+            }
+            console.error(`[Telegram API] Request error: ${error.message}. Retrying...`);
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+    }
+    
+    throw new Error("Failed to upload to Telegram after all retries.");
+}

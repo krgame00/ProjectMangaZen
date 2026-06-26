@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ReaderUIClient from "@/components/ReaderUIClient";
-
 export default async function ReaderPage({ params }: { params: Promise<{ mangaId: string, chapterId: string }> }) {
   const { mangaId, chapterId } = await params;
 
