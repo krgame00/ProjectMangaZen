@@ -57,7 +57,7 @@ export default function AddChapterModal({ isOpen, onClose, mangaId, mangaTitle }
               canvas.height = viewport.height;
               canvas.width = viewport.width;
               
-              await page.render({ canvasContext: context, viewport }).promise;
+              await page.render({ canvasContext: context, viewport, canvas } as any).promise;
               
               const blob = await new Promise<Blob | null>((resolve) => {
                 canvas.toBlob((b) => resolve(b), "image/webp", 0.9);

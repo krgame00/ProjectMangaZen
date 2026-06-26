@@ -159,8 +159,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
                 if (!context) continue;
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-                // @ts-ignore: PDF.js API version mismatch
-                await page.render({ canvasContext: context, viewport }).promise;
+                await page.render({ canvasContext: context, viewport, canvas } as any).promise;
                 
                 const blob = await new Promise<Blob | null>((resolve) => {
                   canvas.toBlob((b) => resolve(b), "image/webp", 0.9);

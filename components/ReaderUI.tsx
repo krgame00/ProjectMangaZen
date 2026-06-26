@@ -213,15 +213,16 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                        error={pdfErrorElement}
                      >
                        {Array.from(new Array(numPages || 0), (el, index) => (
-                         <Page 
-                           key={`page_${index + 1}`} 
-                           pageNumber={index + 1} 
-                           width={1200}
-                           renderTextLayer={false}
-                           renderAnnotationLayer={false}
-                           className="pdf-page-render"
-                           style={{ marginBottom: "20px" }}
-                         />
+                         <div key={`page_container_${index + 1}`} style={{ marginBottom: "20px" }}>
+                           <Page 
+                             key={`page_${index + 1}`} 
+                             pageNumber={index + 1} 
+                             width={1200}
+                             renderTextLayer={false}
+                             renderAnnotationLayer={false}
+                             className="pdf-page-render"
+                           />
+                         </div>
                        ))}
                      </Document>
                    </div>
