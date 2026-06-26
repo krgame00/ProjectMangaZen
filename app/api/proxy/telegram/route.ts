@@ -1,0 +1,53 @@
+import { NextResponse } from "next/server";
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const fileId = searchParams.get("fileId");
+
+    if (!fileId) {
+      return new NextResponse("Missing fileId", { status: 400 });
+    }
+    
+    if (!BOT_TOKEN) {
+      return new NextResponse("Server configuration error: Telegram token missing", { status: 500 });
+    }
+
+    // Step 1: Get the file_path from Telegram API using the file_id
+    const fileResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+    const fileData = await fileResponse.json();
+
+    if (!fileData.ok) {
+      console.error("Telegram API getFile error:", fileData);
+      return new NextResponse("File not found on Telegram", { status: 404 });
+    }
+
+    const filePath = fileData.result.file_path;
+    
+    // Step 2: Fetch the actual file from Telegram's file server
+    const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+    const imgResponse = await fetch(downloadUrl);
+
+    if (!imgResponse.ok) {
+      return new NextResponse("Failed to download image from Telegram", { status: imgResponse.status });
+    }
+
+    // Return the image stream directly
+    const headers = new Headers();
+    headers.set("Content-Type", imgResponse.headers.get("content-type") || "image/jpeg");
+    headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
+
+    return new NextResponse(imgResponse.body, {
+      status: 200,
+      headers,
+    });
+  } catch (error: any) {
+    console.error("Telegram Proxy Error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}

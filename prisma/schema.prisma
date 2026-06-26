@@ -1,0 +1,85 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String?    // Optional for Google Login
+  role      String     @default("user")
+  createdAt DateTime   @default(now())
+  favorites Favorite[]
+  accounts  Account[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Manga {
+  id          String     @id @default(uuid())
+  title       String
+  author      String?
+  description String?
+  status      String     @default("ongoing")
+  genre       String
+  tags        String?
+  coverUrl    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  chapters    Chapter[]
+  favorites   Favorite[]
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  title     String
+  pages     String   // Store JSON stringified array of page data or URLs
+  mangaId   String
+  manga     Manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  mangaId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga     Manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, mangaId])
+}
+
+model TranslationCache {
+  id        String   @id @default(uuid())
+  chapterId String
+  pageIndex Int
+  lang      String
+  bubbles   String   // JSON string of translation bubbles
+  createdAt DateTime @default(now())
+
+  @@unique([chapterId, pageIndex, lang])
+}
