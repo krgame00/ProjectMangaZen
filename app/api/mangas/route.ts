@@ -19,10 +19,26 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const includeChapters = searchParams.get("include") === "chapters";
 
-    const mangas = await prisma.manga.findMany({
-      orderBy: { createdAt: "desc" },
-      ...(includeChapters ? { include: { chapters: { select: { id: true, title: true } } } } : { include: { _count: { select: { chapters: true } } } }),
-    });
+    let mangas;
+    if (includeChapters) {
+      mangas = await prisma.manga.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          chapters: {
+            select: { id: true, title: true }
+          }
+        }
+      });
+    } else {
+      mangas = await prisma.manga.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { chapters: true }
+          }
+        }
+      });
+    }
     return NextResponse.json(mangas);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch mangas" }, { status: 500 });

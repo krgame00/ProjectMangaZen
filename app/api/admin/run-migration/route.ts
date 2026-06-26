@@ -3,8 +3,8 @@ import { exec } from "child_process";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  return new Promise((resolve) => {
+export async function GET(): Promise<Response> {
+  return new Promise<Response>((resolve) => {
     exec("node migrate-to-telegram.js", { cwd: process.cwd() }, (error, stdout, stderr) => {
       if (error) {
         resolve(NextResponse.json({ success: false, error: error.message, stdout, stderr }));

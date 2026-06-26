@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     }
 
     const firstImage = imageFiles[0];
-    const imageBuffer = await firstImage.async("nodebuffer");
+    const imageBuffer = await firstImage.async("uint8array");
 
     const headers = new Headers();
     headers.set("Content-Type", "image/jpeg");
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
     if (firstImage.name.toLowerCase().endsWith("gif")) headers.set("Content-Type", "image/gif");
     headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
 
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(imageBuffer as any, {
       status: 200,
       headers,
     });
