@@ -21,7 +21,13 @@ if (tursoUrl && tursoToken) {
   });
 } else {
   // Fallback to standard Prisma client connection (e.g., local SQLite database)
+  const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
   prismaInstance = new PrismaClient({
+    datasources: {
+      db: {
+        url: dbUrl,
+      },
+    },
     log: process.env.NODE_ENV !== 'production' ? ['query'] : [],
   });
 }
