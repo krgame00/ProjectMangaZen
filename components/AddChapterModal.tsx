@@ -96,43 +96,29 @@ export default function AddChapterModal({ isOpen, onClose, mangaId, mangaTitle }
     setUploadProgress(0);
     
     try {
-      // 1. Upload files
-      const formData = new FormData();
-      files.forEach((file) => formData.append("files", file));
-      
-      const safeTitle = mangaTitle ? mangaTitle.replace(/[<>:"/\\|?*]+/g, '_').trim() : "Untitled";
-      formData.append("folder", safeTitle);
-      
-      const uploadData = await new Promise<any>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/upload");
+      // 1. Upload files sequentially to bypass serverless payload limits
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("files", files[i]);
         
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          }
-        };
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
         
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              resolve(JSON.parse(xhr.responseText));
-            } catch (err) {
-              reject(new Error("Invalid JSON response"));
-            }
-          } else {
-            try {
-              const errData = JSON.parse(xhr.responseText);
-              reject(new Error(errData.error || "Upload failed"));
-            } catch (err) {
-              reject(new Error("Upload failed"));
-            }
-          }
-        };
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text();
+          throw new Error(`Upload failed for ${files[i].name}: ${errText}`);
+        }
         
-        xhr.onerror = () => reject(new Error("Network error during upload"));
-        xhr.send(formData);
-      });
+        const data = await uploadRes.json();
+        if (data.urls && data.urls.length > 0) {
+          uploadedUrls.push(data.urls[0]);
+        }
+        
+        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+      }
       
       // 2. Create Chapter entry
       const chapterRes = await fetch("/api/chapters", {
@@ -141,7 +127,7 @@ export default function AddChapterModal({ isOpen, onClose, mangaId, mangaTitle }
         body: JSON.stringify({
           mangaId,
           title,
-          pages: uploadData.urls,
+          pages: uploadedUrls,
         }),
       });
       

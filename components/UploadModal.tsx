@@ -234,29 +234,29 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         job.files.forEach((file) => formData.append("files", file));
         
         const safeTitle = job.title.replace(/[<>:"/\\|?*]+/g, '_').trim() || "Untitled";
-        formData.append("folder", safeTitle);
-        
-        const uploadData = await new Promise<any>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open("POST", "/api/upload");
+        // Upload files sequentially to bypass serverless payload limits
+        const uploadedUrls: string[] = [];
+        for (let i = 0; i < job.files.length; i++) {
+          const formData = new FormData();
+          formData.append("files", job.files[i]);
           
-          xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-              setJobs(prev => prev.map(j => j.id === job.id ? { ...j, progress: Math.round((e.loaded / e.total) * 100) } : j));
-            }
-          };
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
           
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(JSON.parse(xhr.responseText));
-            } else {
-              reject(new Error("Upload failed"));
-            }
-          };
+          if (!uploadRes.ok) {
+            const errText = await uploadRes.text();
+            throw new Error(`Upload failed for ${job.files[i].name}: ${errText}`);
+          }
           
-          xhr.onerror = () => reject(new Error("Network error"));
-          xhr.send(formData);
-        });
+          const data = await uploadRes.json();
+          if (data.urls && data.urls.length > 0) {
+            uploadedUrls.push(data.urls[0]);
+          }
+          
+          setJobs(prev => prev.map(j => j.id === job.id ? { ...j, progress: Math.round(((i + 1) / job.files.length) * 100) } : j));
+        }
         
         const mangaRes = await fetch("/api/mangas", {
           method: "POST",
@@ -268,8 +268,8 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
             genre,
             status,
             tags: JSON.stringify(tags),
-            coverUrl: uploadData.urls[0],
-            pages: uploadData.urls,
+            coverUrl: uploadedUrls[0],
+            pages: uploadedUrls,
           }),
         });
         
