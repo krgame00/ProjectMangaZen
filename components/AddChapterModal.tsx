@@ -102,19 +102,31 @@ export default function AddChapterModal({ isOpen, onClose, mangaId, mangaTitle }
         const formData = new FormData();
         formData.append("files", files[i]);
         
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        
-        if (!uploadRes.ok) {
-          const errText = await uploadRes.text();
-          throw new Error(`Upload failed for ${files[i].name}: ${errText}`);
-        }
-        
-        const data = await uploadRes.json();
-        if (data.urls && data.urls.length > 0) {
-          uploadedUrls.push(data.urls[0]);
+        let uploaded = false;
+        while (!uploaded) {
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          
+          if (uploadRes.status === 429) {
+            const errData = await uploadRes.json();
+            const waitSecs = errData.retryAfter || 5;
+            toast.error(`รอเซิร์ฟเวอร์ Telegram ${waitSecs} วิ...`, { id: "rate_limit" });
+            await new Promise(r => setTimeout(r, waitSecs * 1000));
+            continue;
+          }
+          
+          if (!uploadRes.ok) {
+            const errText = await uploadRes.text();
+            throw new Error(`Upload failed for ${files[i].name}: ${errText}`);
+          }
+          
+          const data = await uploadRes.json();
+          if (data.urls && data.urls.length > 0) {
+            uploadedUrls.push(data.urls[0]);
+          }
+          uploaded = true;
         }
         
         setUploadProgress(Math.round(((i + 1) / files.length) * 100));

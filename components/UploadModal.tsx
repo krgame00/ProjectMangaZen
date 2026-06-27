@@ -234,25 +234,36 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
         job.files.forEach((file) => formData.append("files", file));
         
         const safeTitle = job.title.replace(/[<>:"/\\|?*]+/g, '_').trim() || "Untitled";
-        // Upload files sequentially to bypass serverless payload limits
         const uploadedUrls: string[] = [];
         for (let i = 0; i < job.files.length; i++) {
           const formData = new FormData();
           formData.append("files", job.files[i]);
           
-          const uploadRes = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-          
-          if (!uploadRes.ok) {
-            const errText = await uploadRes.text();
-            throw new Error(`Upload failed for ${job.files[i].name}: ${errText}`);
-          }
-          
-          const data = await uploadRes.json();
-          if (data.urls && data.urls.length > 0) {
-            uploadedUrls.push(data.urls[0]);
+          let uploaded = false;
+          while (!uploaded) {
+            const uploadRes = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+            
+            if (uploadRes.status === 429) {
+              const errData = await uploadRes.json();
+              const waitSecs = errData.retryAfter || 5;
+              toast.error(`รอเซิร์ฟเวอร์ Telegram ${waitSecs} วิ...`, { id: "rate_limit" });
+              await new Promise(r => setTimeout(r, waitSecs * 1000));
+              continue;
+            }
+            
+            if (!uploadRes.ok) {
+              const errText = await uploadRes.text();
+              throw new Error(`Upload failed for ${job.files[i].name}: ${errText}`);
+            }
+            
+            const data = await uploadRes.json();
+            if (data.urls && data.urls.length > 0) {
+              uploadedUrls.push(data.urls[0]);
+            }
+            uploaded = true;
           }
           
           setJobs(prev => prev.map(j => j.id === job.id ? { ...j, progress: Math.round(((i + 1) / job.files.length) * 100) } : j));

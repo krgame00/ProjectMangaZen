@@ -106,15 +106,11 @@ export async function uploadBufferToTelegram(
             
             // Handle Rate Limiting
             if (tgRes.status === 429) {
-                const retryAfter = tgData.parameters?.retry_after || Math.pow(2, attempt);
-                console.warn(`[Telegram API] Rate limit hit (429). Retrying after ${retryAfter} seconds (Attempt ${attempt + 1}/${maxRetries})...`);
-                
-                if (attempt === maxRetries) {
-                    throw new Error(`Telegram rate limit exceeded. Max retries (${maxRetries}) reached.`);
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                continue; // Retry the upload
+                const retryAfter = tgData.parameters?.retry_after || 5;
+                console.warn(`[Telegram API] Rate limit hit (429). Throwing to client to wait ${retryAfter} seconds...`);
+                const error = new Error("RATE_LIMIT");
+                (error as any).retryAfter = retryAfter;
+                throw error;
             }
             
             if (!tgData.ok) {
@@ -139,6 +135,7 @@ export async function uploadBufferToTelegram(
             
             return fileId;
         } catch (error: any) {
+            if (error.message === "RATE_LIMIT") throw error; // Bubble up instantly
             if (attempt === maxRetries) {
                 throw error;
             }

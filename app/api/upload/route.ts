@@ -22,7 +22,10 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ urls }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === "RATE_LIMIT") {
+      return NextResponse.json({ error: "Rate limit exceeded", retryAfter: error.retryAfter }, { status: 429 });
+    }
     console.error("Upload Error:", error);
     return NextResponse.json({ error: "Failed to upload files" }, { status: 500 });
   }
