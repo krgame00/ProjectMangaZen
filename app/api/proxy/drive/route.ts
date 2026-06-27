@@ -18,7 +18,7 @@ export async function GET(req: Request) {
       return new NextResponse("Missing id", { status: 400 });
     }
 
-    const driveUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${process.env.GOOGLE_DRIVE_API_KEY}`;
+    const driveUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&acknowledgeAbuse=true&key=${process.env.GOOGLE_DRIVE_API_KEY}`;
     
     // Pass along the Range header if requested by pdfjs/browser
     const headers: Record<string, string> = {};
