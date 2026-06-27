@@ -33,7 +33,6 @@ import ToasterWrapper from "@/components/ToasterWrapper";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import AuthProvider from "@/components/AuthProvider";
 import { SidebarProvider } from "@/components/SidebarContext";
-import MobileBottomNav from "@/components/MobileBottomNav";
 
 export default function RootLayout({
   children,
@@ -57,7 +56,6 @@ export default function RootLayout({
                     {children}
                   </main>
                 </div>
-                <MobileBottomNav />
                 <ToasterWrapper />
               </SidebarProvider>
             </LanguageProvider>

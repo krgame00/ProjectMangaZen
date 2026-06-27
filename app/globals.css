@@ -264,18 +264,23 @@ main{flex:1;padding:28px;overflow:auto;min-width:0}
 @media(max-width:768px){
   /* Top Nav */
   nav { padding: 0 12px; gap: 8px; justify-content: space-between; }
-  .hamburger-btn { display: none; } /* Replaced by bottom nav */
+  .hamburger-btn { display: block; } 
   .nav-search { display: none; }
   .btn-upl { display: none; }
   .nav-actions { margin-left: 0; }
-  .nav-profile-group, .btn-login { display: none; } /* Moved to bottom nav */
+  .nav-profile-group, .btn-login { display: none; } 
   
   /* Sidebar */
-  aside { display: none; } /* Hidden completely on mobile, use bottom nav */
+  aside { 
+    position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; 
+    z-index: 200; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+    background: var(--bg2); padding: 0; border-right: 1px solid var(--border);
+  }
+  aside.open { left: 0; }
   
-  /* Layout Padding (account for bottom nav) */
-  .layout { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
-  main { padding: 12px 10px; }
+  /* Layout Padding */
+  .layout { padding-bottom: 0; }
+  main { padding: 14px; }
   
   /* Manga Grid - 3 columns on small screens if possible, or 2 if too narrow */
   .manga-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
