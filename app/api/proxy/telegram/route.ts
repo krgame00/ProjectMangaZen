@@ -19,7 +19,9 @@ export async function GET(req: Request) {
     }
 
     // Step 1: Get the file_path from Telegram API using the file_id
-    const fileResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+    const fileResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`, {
+      cache: "no-store"
+    });
     const fileData = await fileResponse.json();
 
     if (!fileData.ok) {
@@ -31,7 +33,9 @@ export async function GET(req: Request) {
     
     // Step 2: Fetch the actual file from Telegram's file server
     const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
-    const imgResponse = await fetch(downloadUrl);
+    const imgResponse = await fetch(downloadUrl, {
+      cache: "no-store"
+    });
 
     if (!imgResponse.ok) {
       return new NextResponse("Failed to download image from Telegram", { status: imgResponse.status });
