@@ -29,7 +29,7 @@ export async function GET(req: Request) {
         if (imgRes.ok) {
           const headers = new Headers();
           headers.set("Content-Type", imgRes.headers.get("content-type") || "image/jpeg");
-          headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
+          headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
           return new NextResponse(imgRes.body, { status: 200, headers });
         }
       } catch (e) {
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 
     const headers = new Headers();
     headers.set("Content-Type", mimeType);
-    headers.set("Cache-Control", "public, max-age=86400");
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
     // Convert Node.js ReadableStream to Web ReadableStream
     const { Readable } = require("stream");

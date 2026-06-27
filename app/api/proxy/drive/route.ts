@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
     const responseHeaders: Record<string, string> = {
       "Content-Type": driveRes.headers.get("content-type") || "application/octet-stream",
-      "Cache-Control": "public, max-age=86400",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Expose-Headers": "Accept-Ranges, Content-Range, Content-Length, Content-Type"
     };

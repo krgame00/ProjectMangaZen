@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     if (firstImage.name.toLowerCase().endsWith("png")) headers.set("Content-Type", "image/png");
     if (firstImage.name.toLowerCase().endsWith("webp")) headers.set("Content-Type", "image/webp");
     if (firstImage.name.toLowerCase().endsWith("gif")) headers.set("Content-Type", "image/gif");
-    headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
     return new NextResponse(imageBuffer as any, {
       status: 200,
