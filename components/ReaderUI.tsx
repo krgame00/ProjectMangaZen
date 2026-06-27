@@ -98,7 +98,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
     }
   }, [mangaId, chapterId, currentPage]);
 
-  const pdfErrorElement = (
+  const pdfErrorElement = pdfError?.includes("Invalid PDF structure") || pdfError?.includes("Worker") || pdfError?.toLowerCase().includes("pdf") ? null : (
     <div className="page-hero" style={{ margin: "60px auto", maxWidth: "600px", textAlign: "center", padding: "40px" }}>
       <div className="page-hero-glow-1" />
       <div className="page-hero-glow-2" />
@@ -203,6 +203,15 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
               }
 
               if (isDriveFile) {
+                 if (pdfError && (pdfError.includes("Invalid PDF structure") || pdfError.includes("Worker") || pdfError.toLowerCase().includes("pdf"))) {
+                   return (
+                     <div key={index} className="page-wrap scroll-page" style={{ display: "flex", justifyContent: "center" }}>
+                       <div id={`spage-${index}`} style={{ position: "relative", display: "flex", justifyContent: "center", maxWidth: "1000px", width: "100%" }}>
+                         <img src={`/api/proxy/drive?id=${driveId}`} alt="Fallback Image" style={{ maxWidth: "100%", height: "auto", display: "block" }} />
+                       </div>
+                     </div>
+                   );
+                 }
                  return (
                    <div key={index} className="page-wrap scroll-page" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
                      <Document
@@ -257,6 +266,27 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
               }
 
               if (isDriveFile) {
+                if (pdfError && (pdfError.includes("Invalid PDF structure") || pdfError.includes("Worker") || pdfError.toLowerCase().includes("pdf"))) {
+                  return (
+                    <div className="page-wrap scroll-page" style={{ display: "flex", justifyContent: "center" }}>
+                      <div id="pageContainer" style={{ position: "relative", display: "flex", justifyContent: "center", maxWidth: "1000px", width: "100%" }}>
+                        <img src={`/api/proxy/drive?id=${driveId}`} alt="Fallback Image" style={{ maxWidth: "100%", height: "auto", display: "block" }} />
+                        
+                        {/* Click Zones */}
+                        <div 
+                          onClick={() => readDirection === "rtl" ? goNext() : goPrev()}
+                          style={{ position: "absolute", top: 0, left: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
+                          title={readDirection === "rtl" ? "หน้าถัดไป" : "หน้าก่อนหน้า"}
+                        />
+                        <div 
+                          onClick={() => readDirection === "rtl" ? goPrev() : goNext()}
+                          style={{ position: "absolute", top: 0, right: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
+                          title={readDirection === "rtl" ? "หน้าก่อนหน้า" : "หน้าถัดไป"}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div className="page-wrap scroll-page" style={{ width: "100%", display: "flex", justifyContent: "center", position: "relative" }}>
                      <Document
