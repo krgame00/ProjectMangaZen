@@ -45,7 +45,9 @@ export async function GET(req: Request) {
     const headers = new Headers();
     headers.set("Content-Type", "image/jpeg"); // Force as image to prevent downloading
     headers.set("Content-Disposition", "inline"); // Force browser to display inline
-    headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
+    // IMPORTANT: Netlify Edge cache ignores query params (fileId) for route handlers returning public Cache-Control.
+    // We must set no-cache here. `next/image` will still cache the optimized result, so performance is fine.
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
     return new NextResponse(imgResponse.body, {
       status: 200,
