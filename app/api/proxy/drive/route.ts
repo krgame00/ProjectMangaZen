@@ -18,51 +18,45 @@ export async function GET(req: Request) {
       return new NextResponse("Missing id", { status: 400 });
     }
 
-    // Get metadata to ensure we have the correct Content-Type
-    const meta = await drive.files.get({ fileId: id, fields: "mimeType" });
-    const mimeType = meta.data.mimeType || "application/octet-stream";
-
-    // Get the file stream from Google Drive using googleapis
-    const res = await drive.files.get(
-      { fileId: id, alt: "media", acknowledgeAbuse: true },
-      { responseType: "stream" }
-    );
-
-    const responseHeaders: Record<string, string> = {};
-    responseHeaders["Content-Type"] = mimeType;
-    if (res.headers && res.headers["content-length"]) {
-      responseHeaders["Content-Length"] = res.headers["content-length"];
+    const driveUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${process.env.GOOGLE_DRIVE_API_KEY}`;
+    
+    // Pass along the Range header if requested by pdfjs/browser
+    const headers: Record<string, string> = {};
+    const range = req.headers.get("range");
+    if (range) {
+      headers["Range"] = range;
     }
-    responseHeaders["Cache-Control"] = "public, max-age=86400";
 
-    // Pass the Node.js Readable stream using Web API ReadableStream adapter
-    const stream = new ReadableStream({
-      start(controller) {
-        res.data.on("data", (chunk: any) => {
-          controller.enqueue(chunk);
-        });
-        res.data.on("end", () => {
-          controller.close();
-        });
-        res.data.on("error", (err: any) => {
-          controller.error(err);
-        });
-      },
-      cancel() {
-        res.data.destroy();
-      }
-    });
+    const driveRes = await fetch(driveUrl, { headers });
 
-    return new NextResponse(stream, {
-      status: 200,
+    if (!driveRes.ok) {
+      return new NextResponse(`Drive API Error: ${driveRes.statusText}`, { status: driveRes.status });
+    }
+
+    const responseHeaders: Record<string, string> = {
+      "Content-Type": driveRes.headers.get("content-type") || "application/octet-stream",
+      "Cache-Control": "public, max-age=86400",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Expose-Headers": "Accept-Ranges, Content-Range, Content-Length, Content-Type"
+    };
+
+    if (driveRes.headers.has("content-length")) {
+      responseHeaders["Content-Length"] = driveRes.headers.get("content-length")!;
+    }
+    if (driveRes.headers.has("content-range")) {
+      responseHeaders["Content-Range"] = driveRes.headers.get("content-range")!;
+    }
+    if (driveRes.headers.has("accept-ranges")) {
+      responseHeaders["Accept-Ranges"] = driveRes.headers.get("accept-ranges")!;
+    }
+
+    return new NextResponse(driveRes.body, {
+      status: driveRes.status,
       headers: responseHeaders,
     });
 
   } catch (error: any) {
-    console.error("Proxy error:", error);
-    if (error.response?.status) {
-      return new NextResponse(`Error from Drive: ${error.message}`, { status: error.response.status });
-    }
+    console.error("Drive Proxy error:", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
