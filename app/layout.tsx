@@ -32,6 +32,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ToasterWrapper from "@/components/ToasterWrapper";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import AuthProvider from "@/components/AuthProvider";
+import { SidebarProvider } from "@/components/SidebarContext";
 
 export default function RootLayout({
   children,
@@ -44,17 +45,19 @@ export default function RootLayout({
         <ThemeProvider attribute="data-theme" defaultTheme="dark">
           <AuthProvider>
             <LanguageProvider>
-              <Navbar />
+              <SidebarProvider>
+                <Navbar />
 
-          {/* LAYOUT */}
-          <div className="layout">
-            <Sidebar />
+                {/* LAYOUT */}
+                <div className="layout">
+                  <Sidebar />
 
-            <main>
-              {children}
-            </main>
-          </div>
-            <ToasterWrapper />
+                  <main>
+                    {children}
+                  </main>
+                </div>
+                <ToasterWrapper />
+              </SidebarProvider>
             </LanguageProvider>
           </AuthProvider>
         </ThemeProvider>

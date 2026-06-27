@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import UploadModal from "./UploadModal";
 import { useLanguage } from "./LanguageProvider";
 import SearchInput from "./SearchInput";
+import { useSidebar } from "./SidebarContext";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -14,6 +15,7 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { lang, setLang, t } = useLanguage();
+  const { toggle } = useSidebar();
 
   useEffect(() => {
     setMounted(true);
@@ -22,6 +24,9 @@ export default function Navbar() {
   return (
     <>
       <nav>
+        <button className="hamburger-btn" onClick={toggle} title="Menu">
+          ☰
+        </button>
         <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="nav-logo">Manga<span>Zen</span></div>
         </Link>
