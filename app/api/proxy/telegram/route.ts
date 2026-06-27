@@ -43,7 +43,8 @@ export async function GET(req: Request) {
 
     // Return the image stream directly
     const headers = new Headers();
-    headers.set("Content-Type", imgResponse.headers.get("content-type") || "image/jpeg");
+    headers.set("Content-Type", "image/jpeg"); // Force as image to prevent downloading
+    headers.set("Content-Disposition", "inline"); // Force browser to display inline
     headers.set("Cache-Control", "public, max-age=86400"); // Cache for 24 hours
 
     return new NextResponse(imgResponse.body, {
