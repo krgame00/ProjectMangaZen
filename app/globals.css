@@ -262,32 +262,95 @@ main{flex:1;padding:28px;overflow:auto;min-width:0}
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  nav { padding: 0 12px; gap: 8px; }
-  .hamburger-btn { display: block; }
+  /* Top Nav */
+  nav { padding: 0 12px; gap: 8px; justify-content: space-between; }
+  .hamburger-btn { display: none; } /* Replaced by bottom nav */
+  .nav-search { display: none; }
+  .btn-upl { display: none; }
+  .nav-actions { margin-left: 0; }
+  .nav-profile-group, .btn-login { display: none; } /* Moved to bottom nav */
   
-  aside { 
-    position: fixed; top: 0; left: -280px; width: 260px; height: 100vh; 
-    z-index: 200; transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-    background: var(--bg2); padding: 0; border-right: 1px solid var(--border);
-  }
-  aside.open { left: 0; }
-  .sb-header-mobile { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-  .sb-close-btn { background: none; border: none; font-size: 20px; color: var(--text3); cursor: pointer; }
+  /* Sidebar */
+  aside { display: none; } /* Hidden completely on mobile, use bottom nav */
   
-  main{padding:14px}
-  .manga-grid{grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px}
-  .detail-hero{flex-direction:column;align-items:center;text-align:center}
-  .detail-cover{width:140px}
-  .hero-stats{gap:14px}
-  .hero h1{font-size:24px}
-  .nav-logo{font-size:16px; margin-right: 4px;}
-  .nav-search { display: none; } /* Hide search bar on very small screens, use a dedicated search page instead */
-  .btn-upl { padding: 8px; }
-  .btn-upl span.hidden { display: none; }
-  .nav-actions { gap: 6px; }
-  .manga-hero { padding: 24px 16px; gap: 24px; }
+  /* Layout Padding (account for bottom nav) */
+  .layout { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+  main { padding: 12px 10px; }
+  
+  /* Manga Grid - 3 columns on small screens if possible, or 2 if too narrow */
+  .manga-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  
+  /* Remove sticky hover on mobile, use active state instead */
+  .manga-card:hover { transform: none; border-color: var(--border); box-shadow: none; }
+  .manga-card:active { transform: scale(0.96); border-color: var(--accent); }
+  .manga-card:hover .manga-cover img { transform: none; }
+  .manga-card:active .manga-cover img { transform: scale(1.02); }
+  
+  /* Detail Page Hero */
+  .detail-hero { flex-direction: column; align-items: center; text-align: center; }
+  .detail-cover { width: 130px; }
+  
+  /* Home Hero */
+  .hero { padding: 24px 20px; border-radius: 20px; margin-bottom: 24px; }
+  .hero-stats { gap: 16px; flex-direction: column; align-items: flex-start; }
+  .hero h1 { font-size: 28px; }
+  .h-stat-icon { width: 44px; height: 44px; font-size: 20px; border-radius: 12px; }
+  .h-stat .num { font-size: 24px; }
+  
+  .nav-logo { font-size: 18px; margin-right: 4px; }
   .detail-title { font-size: 24px; }
 }
+
+/* HORIZONTAL SCROLL CHIPS (App-like) */
+.cat-row { 
+  display: flex; 
+  gap: 8px; 
+  overflow-x: auto; 
+  padding-bottom: 12px; 
+  -webkit-overflow-scrolling: touch; 
+  scroll-snap-type: x mandatory; 
+  scrollbar-width: none; 
+}
+.cat-row::-webkit-scrollbar { display: none; }
+.cat-row > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* MOBILE BOTTOM NAV */
+.mobile-bottom-nav { 
+  display: none; 
+  position: fixed; 
+  bottom: 0; left: 0; right: 0; 
+  height: calc(60px + env(safe-area-inset-bottom)); 
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(13,13,18,0.92); 
+  backdrop-filter: blur(16px); 
+  border-top: 1px solid var(--border); 
+  z-index: 200; 
+  justify-content: space-around; 
+  align-items: center; 
+}
+[data-theme="light"] .mobile-bottom-nav { background: rgba(240,237,232,0.95); }
+@media(max-width:768px) {
+  .mobile-bottom-nav { display: flex; }
+}
+.mbn-item { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 4px; 
+  color: var(--text3); 
+  text-decoration: none; 
+  font-size: 10px; 
+  font-weight: 600;
+  width: 60px;
+  height: 50px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+.mbn-item:active { transform: scale(0.92); background: rgba(255,255,255,0.05); }
+.mbn-item.active { color: var(--accent); }
+.mbn-icon { font-size: 20px; margin-bottom: 2px; }
+
 .artist-link { transition: all 0.2s; }
 .artist-link:hover { background: rgba(167, 139, 250, 0.2) !important; }
 

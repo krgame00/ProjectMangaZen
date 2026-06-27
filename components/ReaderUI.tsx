@@ -163,7 +163,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
       <div 
         className="reader-body" 
         onScroll={handleScroll}
-        style={{ overflowY: "auto", height: "100%", minHeight: "100vh", paddingTop: "80px", paddingBottom: "100px", scrollBehavior: "smooth" }}
+        style={{ overflowY: "auto", height: "100%", minHeight: "100vh", paddingTop: "max(60px, env(safe-area-inset-top))", paddingBottom: "max(80px, env(safe-area-inset-bottom))", scrollBehavior: "smooth", paddingLeft: "0", paddingRight: "0" }}
       >
         {zipError ? (
           <div className="page-hero" style={{ margin: "40px auto", maxWidth: "600px", textAlign: "center" }}>

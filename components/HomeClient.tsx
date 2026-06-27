@@ -62,7 +62,7 @@ export default function HomeClient({ currentCat, currentSort, totalMangas, total
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"12px" }}>
           <div className="sec-title">{t("cat_label")}</div>
         </div>
-        <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
+        <div className="cat-row">
           {CAT_KEYS.map((cat) => {
             const isActive = currentCat === cat.id;
             return (
