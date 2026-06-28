@@ -112,7 +112,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
       const selectedFiles = Array.from(e.target.files).filter(f => 
         /\.(jpe?g|png|webp|pdf)$/i.test(f.name) || 
         ["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)
-      );
+      ).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
       
       if (selectedFiles.length === 0) return;
       
