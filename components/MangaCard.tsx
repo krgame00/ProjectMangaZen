@@ -21,20 +21,13 @@ export default function MangaCard({ id, title, coverUrl, genre, isNew }: MangaCa
       <div className="manga-card">
         <div className="manga-cover relative h-full w-full">
           {coverUrl ? (
-            <>
-              <Image 
-                src={coverUrl} 
+            <Image 
+              src={coverUrl} 
               alt={title}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-              className={`object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={() => setIsLoaded(true)}
+              className="object-cover"
             />
-            {/* Skeleton Loader */}
-            {!isLoaded && (
-              <div className="absolute inset-0 bg-[var(--bg3)] animate-pulse" />
-            )}
-          </>
           ) : (
             <div className="manga-ph">
               📚

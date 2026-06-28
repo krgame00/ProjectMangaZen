@@ -241,7 +241,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                        onLoadSuccess={onDocumentLoadSuccess}
                        onLoadError={onDocumentLoadError}
                        loading={<div style={{ padding: "40px", color: "var(--text2)", textAlign: "center" }}>กำลังโหลด PDF...</div>}
-                       error={pdfErrorElement}
+                       error={<div style={{ padding: "40px", color: "var(--danger)", textAlign: "center" }}>เกิดข้อผิดพลาดในการโหลด PDF</div>}
                      >
                        {Array.from(new Array(numPages || 0), (el, index) => (
                          <div key={`page_container_${index + 1}`} style={{ marginBottom: "20px" }}>
@@ -335,7 +335,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                        onLoadSuccess={onDocumentLoadSuccess}
                        onLoadError={onDocumentLoadError}
                        loading={<div style={{ padding: "40px", color: "var(--text2)", textAlign: "center" }}>กำลังโหลด PDF...</div>}
-                       error={pdfErrorElement}
+                       error={<div style={{ padding: "40px", color: "var(--danger)", textAlign: "center" }}>เกิดข้อผิดพลาดในการโหลด PDF</div>}
                      >
                        <Page 
                          pageNumber={pdfPageNumber} 
