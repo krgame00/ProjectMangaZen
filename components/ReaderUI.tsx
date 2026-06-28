@@ -208,6 +208,21 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                      <div key={index} className="page-wrap scroll-page" style={{ display: "flex", justifyContent: "center" }}>
                        <div id={`spage-${index}`} style={{ position: "relative", display: "flex", justifyContent: "center", maxWidth: "1000px", width: "100%" }}>
                          <img src={`/api/proxy/drive?id=${driveId}`} alt="Fallback Image" style={{ maxWidth: "100%", height: "auto", display: "block" }} />
+                         <button 
+                           onClick={() => {
+                             setCurrentPage(index);
+                             setShowTranslate(true);
+                           }}
+                           className="btn-trans-reader"
+                           style={{ 
+                             position: "absolute", top: "16px", right: "16px", 
+                             background: "rgba(0,0,0,0.6)", color: "var(--accent3)", 
+                             border: "1px solid rgba(52,211,153,0.3)", zIndex: 10,
+                             backdropFilter: "blur(8px)"
+                           }}
+                         >
+                           ✨ แปลหน้านี้
+                         </button>
                        </div>
                      </div>
                    );
@@ -243,6 +258,21 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                 <div key={index} className="page-wrap scroll-page" style={{ display: "flex", justifyContent: "center" }}>
                   <div id={`spage-${index}`} style={{ position: "relative", display: "flex", justifyContent: "center", maxWidth: "1000px", width: "100%" }}>
                     <img src={pageUrl} alt={`Page ${index + 1}`} style={{ maxWidth: "100%", height: "auto", display: "block" }} />
+                    <button 
+                      onClick={() => {
+                        setCurrentPage(index);
+                        setShowTranslate(true);
+                      }}
+                      className="btn-trans-reader"
+                      style={{ 
+                        position: "absolute", top: "16px", right: "16px", 
+                        background: "rgba(0,0,0,0.6)", color: "var(--accent3)", 
+                        border: "1px solid rgba(52,211,153,0.3)", zIndex: 10,
+                        backdropFilter: "blur(8px)"
+                      }}
+                    >
+                      ✨ แปลหน้านี้
+                    </button>
                   </div>
                 </div>
               );
