@@ -509,8 +509,23 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                 </div>
               </div>
               <button 
-                className="btn-submit" 
-                style={{ background: "linear-gradient(135deg,#34d399,#059669)", opacity: isTranslating ? 0.7 : 1 }}
+                style={{ 
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  background: "linear-gradient(135deg,#34d399,#059669)", 
+                  color: "#fff",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: isTranslating ? "not-allowed" : "pointer",
+                  opacity: isTranslating ? 0.7 : 1,
+                  fontSize: "14px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  boxShadow: "0 4px 12px rgba(52,211,153,0.3)",
+                  transition: "all 0.2s"
+                }}
                 onClick={handleTranslate}
                 disabled={isTranslating}
               >
