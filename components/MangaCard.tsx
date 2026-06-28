@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 
 interface MangaCardProps {
   id: string;
@@ -11,18 +14,27 @@ interface MangaCardProps {
 }
 
 export default function MangaCard({ id, title, coverUrl, genre, isNew }: MangaCardProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <Link href={`/manga/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="manga-card">
         <div className="manga-cover relative h-full w-full">
           {coverUrl ? (
-            <Image 
-              src={coverUrl} 
+            <>
+              <Image 
+                src={coverUrl} 
               alt={title}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-              className="object-cover"
+              className={`object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setIsLoaded(true)}
             />
+            {/* Skeleton Loader */}
+            {!isLoaded && (
+              <div className="absolute inset-0 bg-[var(--bg3)] animate-pulse" />
+            )}
+          </>
           ) : (
             <div className="manga-ph">
               📚

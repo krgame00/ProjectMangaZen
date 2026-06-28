@@ -162,8 +162,15 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
       {/* Reader Body */}
       <div 
         className="reader-body" 
+        onClick={(e) => {
+          // Only toggle if they click the background or the image directly, not buttons
+          const target = e.target as HTMLElement;
+          if (target.tagName !== 'BUTTON' && !target.closest('button')) {
+            setIsNavHidden(!isNavHidden);
+          }
+        }}
         onScroll={handleScroll}
-        style={{ overflowY: "auto", height: "100%", minHeight: "100vh", paddingTop: "max(60px, env(safe-area-inset-top))", paddingBottom: "max(80px, env(safe-area-inset-bottom))", scrollBehavior: "smooth", paddingLeft: "0", paddingRight: "0" }}
+        style={{ overflowY: "auto", height: "100%", minHeight: "100vh", paddingTop: "max(60px, env(safe-area-inset-top))", paddingBottom: "max(80px, env(safe-area-inset-bottom))", scrollBehavior: "smooth", paddingLeft: "0", paddingRight: "0", cursor: "pointer" }}
       >
         {zipError ? (
           <div className="page-hero" style={{ margin: "40px auto", maxWidth: "600px", textAlign: "center" }}>
@@ -268,8 +275,12 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                         position: "absolute", top: "16px", right: "16px", 
                         background: "rgba(0,0,0,0.6)", color: "var(--accent3)", 
                         border: "1px solid rgba(52,211,153,0.3)", zIndex: 10,
-                        backdropFilter: "blur(8px)"
+                        backdropFilter: "blur(8px)",
+                        boxShadow: "0 0 15px rgba(52,211,153,0.2)",
+                        transition: "all 0.3s"
                       }}
+                      onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(52,211,153,0.6)"}
+                      onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(52,211,153,0.2)"}
                     >
                       ✨ แปลหน้านี้
                     </button>

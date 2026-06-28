@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai, Cinzel_Decorative, Itim } from "next/font/google";
+import { Noto_Sans_Thai, Cinzel_Decorative, Itim, Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+});
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -41,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body className={`${notoSansThai.variable} ${cinzel.variable} ${itim.variable}`}>
+      <body className={`${inter.variable} ${notoSansThai.variable} ${cinzel.variable} ${itim.variable}`}>
         <ThemeProvider attribute="data-theme" defaultTheme="dark">
           <AuthProvider>
             <LanguageProvider>

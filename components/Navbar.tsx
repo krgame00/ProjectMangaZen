@@ -12,6 +12,7 @@ import { useSidebar } from "./SidebarContext";
 export default function Navbar() {
   const { data: session } = useSession();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { lang, setLang, t } = useLanguage();
@@ -32,8 +33,24 @@ export default function Navbar() {
         </Link>
         <SearchInput />
         <div className="nav-actions">
+          <button 
+            className="btn-icon" 
+            style={{ display: "var(--search-icon-display, none)" }} 
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+          >
+            🔍
+          </button>
+          <style dangerouslySetInnerHTML={{__html: `
+            @media (max-width: 768px) {
+              .mobile-search-toggle { display: flex !important; }
+            }
+          `}} />
+          <button className="btn-icon mobile-search-toggle" style={{ display: "none" }} onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}>
+            🔍
+          </button>
+          
           <select
-            className="lang-sel"
+            className="lang-sel hidden sm:block"
             value={lang}
             onChange={(e) => setLang(e.target.value as "th" | "en")}
           >
@@ -75,6 +92,40 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {/* Mobile Search Overlay */}
+      {isMobileSearchOpen && (
+        <div style={{ position: "fixed", top: "60px", left: 0, right: 0, background: "var(--surface)", padding: "12px 20px", borderBottom: "1px solid var(--border)", zIndex: 99, animation: "staggerFadeUp 0.2s ease forwards" }}>
+          <SearchInput />
+        </div>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-bottom-nav">
+        <Link href="/" className="mbn-item active">
+          <div className="mbn-icon">🏠</div>
+          <span>หน้าแรก</span>
+        </Link>
+        <div className="mbn-item" onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} style={{ cursor: "pointer" }}>
+          <div className="mbn-icon">🔍</div>
+          <span>ค้นหา</span>
+        </div>
+        <Link href="/favorites" className="mbn-item">
+          <div className="mbn-icon">❤️</div>
+          <span>ติดตาม</span>
+        </Link>
+        {session ? (
+          <Link href="/profile" className="mbn-item">
+            <div className="mbn-icon">👤</div>
+            <span>โปรไฟล์</span>
+          </Link>
+        ) : (
+          <Link href="/login" className="mbn-item">
+            <div className="mbn-icon">🔑</div>
+            <span>เข้าสู่ระบบ</span>
+          </Link>
+        )}
+      </div>
 
       <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </>
