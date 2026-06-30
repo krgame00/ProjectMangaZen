@@ -15,8 +15,64 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationResult, setTranslationResult] = useState<string | null>(null);
   const [showTranslate, setShowTranslate] = useState(false);
+  const [activeBubbles, setActiveBubbles] = useState<any[]>([]);
 
-  const handleTranslate = async () => {
+  const translateCrop = async (cropBox: { x: number, y: number, w: number, h: number }, cropBase64: string, fullWidth: number, fullHeight: number) => {
+    setIsTranslating(true);
+    setTranslationResult("กำลังแปลเฉพาะจุดที่เลือก...");
+    try {
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: cropBase64, mimeType: "image/jpeg", targetLang, modelPreference })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      const parsed = JSON.parse(data.text);
+      if (!parsed || !parsed.bubbles || parsed.bubbles.length === 0) {
+        setTranslationResult("❌ ไม่พบข้อความในจุดที่เลือก");
+        return;
+      }
+      
+      const newBubbles = parsed.bubbles.map((b: any) => {
+        if (!b.box || b.box.length !== 4) return b;
+        const cropYminPx = (b.box[0] / 1000) * cropBox.h;
+        const cropXminPx = (b.box[1] / 1000) * cropBox.w;
+        const cropYmaxPx = (b.box[2] / 1000) * cropBox.h;
+        const cropXmaxPx = (b.box[3] / 1000) * cropBox.w;
+        return {
+          ...b,
+          box: [
+            ((cropBox.y + cropYminPx) / fullHeight) * 1000,
+            ((cropBox.x + cropXminPx) / fullWidth) * 1000,
+            ((cropBox.y + cropYmaxPx) / fullHeight) * 1000,
+            ((cropBox.x + cropXmaxPx) / fullWidth) * 1000
+          ],
+          isManual: true
+        };
+      });
+
+      const updatedBubbles = [...activeBubbles, ...newBubbles];
+      setActiveBubbles(updatedBubbles);
+      applyTranslationOverlay(updatedBubbles, viewMode, currentPage, setTranslationResult);
+      setTranslationResult("✅ แปลเฉพาะจุดสำเร็จ!");
+      
+      try {
+        await fetch("/api/translate/cache", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chapterId, pageIndex: currentPage, lang: targetLang, bubbles: updatedBubbles })
+        });
+      } catch (e) { }
+    } catch (error: any) {
+      setTranslationResult("❌ Error: " + error.message);
+    } finally {
+      setIsTranslating(false);
+      setTimeout(() => setTranslationResult(null), 4000);
+    }
+  };
+
+  const handleTranslate = async (forceBypassCache: boolean = false) => {
     if (pages.length === 0) return;
     setIsTranslating(true);
     setTranslationResult(null);
@@ -32,35 +88,42 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
       });
 
       // --- CHECK CACHE FIRST ---
-      setTranslationResult("กำลังตรวจสอบแคช...");
-      try {
-        const cacheRes = await fetch(`/api/translate/cache?chapterId=${chapterId}&pageIndex=${currentPage}&lang=${targetLang}`);
-        const cacheData = await cacheRes.json();
-        if (cacheData.found) {
-          applyTranslationOverlay(cacheData.bubbles, viewMode, currentPage, setTranslationResult);
-          setTranslationResult("⚡ โหลดคำแปลจากแคชสำเร็จทันที!");
-          setShowTranslate(false);
-          setIsTranslating(false);
-          return;
+      // Bypass cache if user forced it, OR if they already have bubbles on screen (e.g. from a manual crop)
+      if (!forceBypassCache && activeBubbles.length === 0) {
+        setTranslationResult("กำลังตรวจสอบแคช...");
+        try {
+          const cacheRes = await fetch(`/api/translate/cache?chapterId=${chapterId}&pageIndex=${currentPage}&lang=${targetLang}`);
+          const cacheData = await cacheRes.json();
+          if (cacheData.found) {
+            setActiveBubbles(cacheData.bubbles);
+            applyTranslationOverlay(cacheData.bubbles, viewMode, currentPage, setTranslationResult);
+            setTranslationResult("⚡ โหลดคำแปลจากแคชสำเร็จทันที!");
+            setShowTranslate(false);
+            setIsTranslating(false);
+            setTimeout(() => setTranslationResult(null), 4000);
+            return;
+          }
+        } catch (e) {
+          console.error("Cache fetch error", e);
         }
-      } catch (e) {
-        console.error("Cache fetch error", e);
       }
 
       setTranslationResult("กำลังประมวลผลด้วย AI...");
       
       if (nsfwBypassMode) {
-        setTranslationResult("กำลังหั่นภาพเป็น 4 ส่วน เพื่อส่งให้ AI แปลพร้อมกัน...");
+        setTranslationResult("กำลังหั่นภาพเป็น 6 ส่วน เพื่อส่งให้ AI แปลพร้อมกัน...");
         const imgEl = new Image();
         imgEl.src = pageUrl;
         await new Promise(r => { imgEl.onload = r; });
 
         const slices = [];
-        const sliceWidth = imgEl.naturalWidth / 2;
-        const sliceHeight = imgEl.naturalHeight / 2;
+        const rows = 3;
+        const cols = 2;
+        const sliceWidth = imgEl.naturalWidth / cols;
+        const sliceHeight = imgEl.naturalHeight / rows;
 
-        for (let row = 0; row < 2; row++) {
-          for (let col = 0; col < 2; col++) {
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
             const canvas = document.createElement("canvas");
             canvas.width = sliceWidth;
             canvas.height = sliceHeight;
@@ -71,7 +134,7 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
           }
         }
 
-        setTranslationResult("กำลังส่งภาพทั้ง 4 ชิ้นให้ AI แปล...");
+        setTranslationResult("กำลังส่งภาพทั้ง 6 ชิ้นให้ AI แปล...");
         
         const promises = slices.map(async (slice) => {
           const res = await fetch("/api/translate", {
@@ -118,19 +181,24 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
         }
 
         if (allBubbles.length === 0) {
-          setTranslationResult(`❌ แปลไม่สำเร็จ หรือโควต้าเต็ม (ผ่านการตรวจสอบ: ${successCount}/4 ชิ้น)`);
+          setTranslationResult(`❌ แปลไม่สำเร็จ หรือโควต้าเต็ม (ผ่านการตรวจสอบ: ${successCount}/6 ชิ้น)`);
           setIsTranslating(false);
+          setTimeout(() => setTranslationResult(null), 4000);
           return;
         }
 
-        applyTranslationOverlay(allBubbles, viewMode, currentPage, setTranslationResult);
-        setTranslationResult(`✅ แปลสำเร็จ! (รวมข้อความจาก ${successCount}/4 ชิ้นส่วน)`);
+        const manualBubbles = activeBubbles.filter(b => b.isManual);
+        const finalBubbles = [...allBubbles, ...manualBubbles];
+
+        setActiveBubbles(finalBubbles);
+        applyTranslationOverlay(finalBubbles, viewMode, currentPage, setTranslationResult);
+        setTranslationResult(`✅ แปลสำเร็จ! (รวมข้อความจาก ${successCount}/6 ชิ้นส่วน)`);
 
         try {
           await fetch("/api/translate/cache", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chapterId, pageIndex: currentPage, lang: targetLang, bubbles: allBubbles })
+            body: JSON.stringify({ chapterId, pageIndex: currentPage, lang: targetLang, bubbles: finalBubbles })
           });
         } catch (e) { console.error("Cache save error", e); }
 
@@ -149,17 +217,25 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
       if (!res.ok) throw new Error(data.error || "Failed to translate");
       
       let parsed = null;
-      try { parsed = JSON.parse(data.text); } catch (e) { setTranslationResult("❌ ไม่สามารถประมวลผล JSON จาก AI ได้"); return; }
-      if (!parsed || !Array.isArray(parsed.bubbles)) { setTranslationResult("❌ ไม่พบข้อความในหน้านี้"); return; }
+      if (!parsed || !Array.isArray(parsed.bubbles)) { 
+        setTranslationResult("❌ ไม่พบข้อความในหน้านี้"); 
+        setIsTranslating(false);
+        setTimeout(() => setTranslationResult(null), 4000);
+        return; 
+      }
 
-      applyTranslationOverlay(parsed.bubbles, viewMode, currentPage, setTranslationResult);
+      const manualBubbles = activeBubbles.filter(b => b.isManual);
+      const finalBubbles = [...parsed.bubbles, ...manualBubbles];
+
+      setActiveBubbles(finalBubbles);
+      applyTranslationOverlay(finalBubbles, viewMode, currentPage, setTranslationResult);
       setTranslationResult("✅ แปลสำเร็จ! ข้อความถูกวาดทับลงบนภาพแล้ว");
 
       try {
         await fetch("/api/translate/cache", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chapterId, pageIndex: currentPage, lang: targetLang, bubbles: parsed.bubbles })
+          body: JSON.stringify({ chapterId, pageIndex: currentPage, lang: targetLang, bubbles: finalBubbles })
         });
       } catch (e) { console.error("Cache save error", e); }
 
@@ -168,6 +244,7 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
       setTranslationResult("❌ Error: " + error.message);
     } finally {
       setIsTranslating(false);
+      setTimeout(() => setTranslationResult(null), 4000);
     }
   };
 
@@ -176,8 +253,10 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
     modelPreference, setModelPreference,
     nsfwBypassMode, setNsfwBypassMode,
     isTranslating,
-    translationResult,
+    translationResult, setTranslationResult,
     showTranslate, setShowTranslate,
-    handleTranslate
+    handleTranslate,
+    translateCrop,
+    activeBubbles, setActiveBubbles
   };
 }

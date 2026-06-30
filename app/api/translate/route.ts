@@ -14,11 +14,19 @@ export async function POST(req: Request) {
     }
 
     const promptText = 
-      `Translate this manga page to ${targetLang || 'Thai'}.\n`+
+      `You are an expert manga translator. Translate this manga page to ${targetLang || 'Thai'}.\n`+
+      `- Use highly natural, conversational flow appropriate for comic books. Avoid rigid word-for-word translation.\n`+
+      `- Arrange sentences beautifully according to native Thai idioms and phrasing (เรียบเรียงประโยคให้สละสลวยเหมือนคนไทยพูดกันในชีวิตจริง ไม่แปลตรงตัว).\n`+
+      `- Do NOT use line breaks (\\n) in the translated text. Keep the text of each bubble on a single continuous line (ห้ามเว้นบรรทัดมั่ว ให้ต่อเป็นบรรทัดเดียวกัน).\n`+
+      `- For Thai: Adapt pronouns (แก, ฉัน, นาย, ข้า, เอ็ง) and endings (ครับ, ค่ะ, วะ, เว้ย, สิ, นะ) based on character relationships and mood.\n`+
+      `- Translate Sound Effects (SFX) and wrap them in asterisks, e.g., *BOOM* or *ตู้ม*.\n`+
+      `- Read order is usually Right-to-Left, Top-to-Bottom.\n`+
       `Output ONLY valid JSON, no markdown, no explanation.\n`+
-      `Format: {"bubbles":[{"t":"translated text","box":[ymin, xmin, ymax, xmax]}]}\n`+
+      `Format: {"bubbles":[{"original_text": "text found in image", "t":"translated text in Thai","box":[ymin, xmin, ymax, xmax]}]}\n`+
       `box: bounding box coordinates in 0-1000 scale (ymin, xmin = top-left, ymax, xmax = bottom-right).\n`+
-      `Translate ALL visible text. ALL translations MUST be in ${targetLang || 'Thai'}. Never use English unless target IS English.\n`+
+      `IMPORTANT: The JSON key is 'bubbles', but you MUST include ALL text blocks (including floating text, stylized red text, background text, and SFX). Do NOT skip text.\n`+
+      `CRITICAL: Force extraction. You must first transcribe the text into 'original_text', then translate it into 't'. I will check if you missed the large red text on the left.\n`+
+      `ALL translations in 't' MUST be in ${targetLang || 'Thai'}.\n`+
       `If no text found: {"bubbles":[]}`;
 
     const payload = {

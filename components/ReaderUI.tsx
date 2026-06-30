@@ -47,7 +47,8 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
     isTranslating,
     translationResult,
     showTranslate, setShowTranslate,
-    handleTranslate
+    handleTranslate,
+    translateCrop
   } = useTranslation({ chapterId, currentPage, pages, viewMode });
 
   const { isDownloading, downloadProgress, handleDownload: handleDownloadAction } = useDownload();
@@ -61,6 +62,12 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
   // Auto-hide Nav State
   const [isNavHidden, setIsNavHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Marquee Mode State
+  const [isMarqueeMode, setIsMarqueeMode] = useState(false);
+  const [marqueeStart, setMarqueeStart] = useState<{ x: number, y: number } | null>(null);
+  const [marqueeEnd, setMarqueeEnd] = useState<{ x: number, y: number } | null>(null);
+  const marqueeContainerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
@@ -122,14 +129,14 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
           <button className="btn-icon" style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none" }}>✕</button>
         </Link>
         
-        <div className="reader-title" style={{ color: "#fff", fontSize: "14px" }}>{mangaTitle}</div>
+        <div className="reader-title hidden sm:block" style={{ color: "#fff", fontSize: "14px" }}>{mangaTitle}</div>
         <div className="reader-ch hidden sm:block" style={{ color: "var(--text3)" }}>- {chapterTitle}</div>
 
         <div style={{ display: "flex", gap: "8px", marginLeft: "auto", alignItems: "center" }}>
           {viewMode === "single" && (
             <button 
               onClick={() => setReadDirection(d => d === "rtl" ? "ltr" : "rtl")}
-              className="btn-trans-reader"
+              className="btn-trans-reader hidden sm:block"
             >
               {readDirection === "rtl" ? "⬅️ ขวาไปซ้าย" : "➡️ ซ้ายไปขวา"}
             </button>
@@ -138,14 +145,21 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
             onClick={() => setViewMode(v => v === "single" ? "scroll" : "single")}
             className="btn-trans-reader"
           >
-            {viewMode === "scroll" ? "📄 ทีละหน้า" : "📜 เลื่อนยาว"}
+            {viewMode === "scroll" ? <><span className="hidden sm:inline">📄 ทีละหน้า</span><span className="sm:hidden">📄</span></> : <><span className="hidden sm:inline">📜 เลื่อนยาว</span><span className="sm:hidden">📜</span></>}
           </button>
           <button 
             onClick={() => setShowTranslate(true)}
             className="btn-trans-reader" 
             style={{ background: "rgba(52,211,153,.15)", borderColor: "rgba(52,211,153,.35)", color: "var(--accent3)" }}
           >
-            ✨ แปล
+            <span className="hidden sm:inline">✨ แปล</span><span className="sm:hidden">✨</span>
+          </button>
+          <button 
+            onClick={() => setIsMarqueeMode(!isMarqueeMode)}
+            className="btn-trans-reader" 
+            style={{ background: isMarqueeMode ? "rgba(52, 211, 153, 0.2)" : "rgba(255,255,255,0.1)", borderColor: isMarqueeMode ? "var(--accent3)" : "rgba(255,255,255,0.2)", color: isMarqueeMode ? "var(--accent3)" : "#fff" }}
+          >
+            {isMarqueeMode ? <><span className="hidden sm:inline">🎯 ลาก...</span><span className="sm:hidden">🎯</span></> : <><span className="hidden sm:inline">🎯 ลากแปล</span><span className="sm:hidden">🎯</span></>}
           </button>
           <button 
             onClick={handleDownload}
@@ -265,25 +279,111 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                 <div key={index} className="page-wrap scroll-page" style={{ display: "flex", justifyContent: "center" }}>
                   <div id={`spage-${index}`} style={{ position: "relative", display: "flex", justifyContent: "center", maxWidth: "1000px", width: "100%" }}>
                     <img src={pageUrl} alt={`Page ${index + 1}`} style={{ maxWidth: "100%", height: "auto", display: "block" }} />
-                    <button 
-                      onClick={() => {
-                        setCurrentPage(index);
-                        setShowTranslate(true);
-                      }}
-                      className="btn-trans-reader"
-                      style={{ 
-                        position: "absolute", top: "16px", right: "16px", 
-                        background: "rgba(0,0,0,0.6)", color: "var(--accent3)", 
-                        border: "1px solid rgba(52,211,153,0.3)", zIndex: 10,
-                        backdropFilter: "blur(8px)",
-                        boxShadow: "0 0 15px rgba(52,211,153,0.2)",
-                        transition: "all 0.3s"
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(52,211,153,0.6)"}
-                      onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(52,211,153,0.2)"}
-                    >
-                      ✨ แปลหน้านี้
-                    </button>
+                    <div style={{ position: "absolute", top: "16px", right: "16px", display: "flex", gap: "8px", zIndex: 10 }}>
+                      <button 
+                        onClick={() => setIsMarqueeMode(!isMarqueeMode)}
+                        className="btn-trans-reader"
+                        style={{ 
+                          background: isMarqueeMode ? "rgba(52,211,153,0.3)" : "rgba(0,0,0,0.6)", 
+                          color: isMarqueeMode ? "var(--accent3)" : "#fff", 
+                          border: isMarqueeMode ? "1px solid var(--accent3)" : "1px solid rgba(255,255,255,0.3)", 
+                          backdropFilter: "blur(8px)",
+                          transition: "all 0.3s"
+                        }}
+                      >
+                        {isMarqueeMode ? "🎯 กำลังลาก..." : "🎯 ลากแปล"}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setCurrentPage(index);
+                          setShowTranslate(true);
+                        }}
+                        className="btn-trans-reader"
+                        style={{ 
+                          background: "rgba(0,0,0,0.6)", color: "var(--accent3)", 
+                          border: "1px solid rgba(52,211,153,0.3)", 
+                          backdropFilter: "blur(8px)",
+                          boxShadow: "0 0 15px rgba(52,211,153,0.2)",
+                          transition: "all 0.3s"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(52,211,153,0.6)"}
+                        onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(52,211,153,0.2)"}
+                      >
+                        ✨ แปลหน้านี้
+                      </button>
+                    </div>
+                    {isMarqueeMode && (
+                      <div 
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "crosshair", zIndex: 20, touchAction: "none" }}
+                        onPointerDown={(e) => {
+                           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           setMarqueeStart({ x, y });
+                           setMarqueeEnd({ x, y });
+                           (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                        }}
+                        onPointerMove={(e) => {
+                           if (!marqueeStart) return;
+                           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           setMarqueeEnd({ x, y });
+                        }}
+                        onPointerUp={async (e) => {
+                           if (!marqueeStart || !marqueeEnd) return;
+                           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           
+                           const finalStartX = Math.min(marqueeStart.x, x);
+                           const finalStartY = Math.min(marqueeStart.y, y);
+                           const finalEndX = Math.max(marqueeStart.x, x);
+                           const finalEndY = Math.max(marqueeStart.y, y);
+                           
+                           setMarqueeStart(null);
+                           setMarqueeEnd(null);
+                           setIsMarqueeMode(false);
+
+                           if (finalEndX - finalStartX < 10 || finalEndY - finalStartY < 10) return;
+
+                           const imgEl = document.querySelector(`#spage-${index} img`) as HTMLImageElement;
+                           if (!imgEl) return;
+                           
+                           const scaleX = imgEl.naturalWidth / rect.width;
+                           const scaleY = imgEl.naturalHeight / rect.height;
+
+                           const cropX = finalStartX * scaleX;
+                           const cropY = finalStartY * scaleY;
+                           const cropW = (finalEndX - finalStartX) * scaleX;
+                           const cropH = (finalEndY - finalStartY) * scaleY;
+
+                           const canvas = document.createElement("canvas");
+                           canvas.width = cropW;
+                           canvas.height = cropH;
+                           const ctx = canvas.getContext("2d");
+                           if (!ctx) return;
+                           ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                           const base64 = canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
+                           
+                           setCurrentPage(index);
+                           translateCrop({ x: cropX, y: cropY, w: cropW, h: cropH }, base64, imgEl.naturalWidth, imgEl.naturalHeight);
+                        }}
+                      >
+                         {marqueeStart && marqueeEnd && (
+                            <div style={{
+                               position: "absolute",
+                               left: Math.min(marqueeStart.x, marqueeEnd.x),
+                               top: Math.min(marqueeStart.y, marqueeEnd.y),
+                               width: Math.abs(marqueeEnd.x - marqueeStart.x),
+                               height: Math.abs(marqueeEnd.y - marqueeStart.y),
+                               border: "2px dashed #34d399",
+                               backgroundColor: "rgba(52, 211, 153, 0.2)",
+                               pointerEvents: "none"
+                            }} />
+                         )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -386,16 +486,96 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                     <img src={pageUrl} alt={`Page ${currentPage + 1}`} style={{ maxWidth: "100%", height: "auto", display: "block" }} />
                     
                     {/* Click Zones */}
-                    <div 
-                      onClick={() => readDirection === "rtl" ? goNext() : goPrev()}
-                      style={{ position: "absolute", top: 0, left: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
-                      title={readDirection === "rtl" ? "หน้าถัดไป" : "หน้าก่อนหน้า"}
-                    />
-                    <div 
-                      onClick={() => readDirection === "rtl" ? goPrev() : goNext()}
-                      style={{ position: "absolute", top: 0, right: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
-                      title={readDirection === "rtl" ? "หน้าก่อนหน้า" : "หน้าถัดไป"}
-                    />
+                    {!isMarqueeMode && (
+                      <>
+                        <div 
+                          onClick={() => readDirection === "rtl" ? goNext() : goPrev()}
+                          style={{ position: "absolute", top: 0, left: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
+                          title={readDirection === "rtl" ? "หน้าถัดไป" : "หน้าก่อนหน้า"}
+                        />
+                        <div 
+                          onClick={() => readDirection === "rtl" ? goPrev() : goNext()}
+                          style={{ position: "absolute", top: 0, right: 0, width: "50%", height: "100%", cursor: "pointer", zIndex: 2 }}
+                          title={readDirection === "rtl" ? "หน้าก่อนหน้า" : "หน้าถัดไป"}
+                        />
+                      </>
+                    )}
+
+                    {isMarqueeMode && (
+                      <div 
+                        ref={marqueeContainerRef}
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", cursor: "crosshair", zIndex: 20, touchAction: "none" }}
+                        onPointerDown={(e) => {
+                           const rect = marqueeContainerRef.current?.getBoundingClientRect();
+                           if (!rect) return;
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           setMarqueeStart({ x, y });
+                           setMarqueeEnd({ x, y });
+                           (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                        }}
+                        onPointerMove={(e) => {
+                           if (!marqueeStart) return;
+                           const rect = marqueeContainerRef.current?.getBoundingClientRect();
+                           if (!rect) return;
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           setMarqueeEnd({ x, y });
+                        }}
+                        onPointerUp={async (e) => {
+                           if (!marqueeStart || !marqueeEnd) return;
+                           const rect = marqueeContainerRef.current?.getBoundingClientRect();
+                           if (!rect) return;
+                           const x = e.clientX - rect.left;
+                           const y = e.clientY - rect.top;
+                           
+                           const finalStartX = Math.min(marqueeStart.x, x);
+                           const finalStartY = Math.min(marqueeStart.y, y);
+                           const finalEndX = Math.max(marqueeStart.x, x);
+                           const finalEndY = Math.max(marqueeStart.y, y);
+                           
+                           setMarqueeStart(null);
+                           setMarqueeEnd(null);
+                           setIsMarqueeMode(false);
+
+                           if (finalEndX - finalStartX < 10 || finalEndY - finalStartY < 10) return;
+
+                           const imgEl = document.querySelector("#pageContainer img") as HTMLImageElement;
+                           if (!imgEl) return;
+                           
+                           const scaleX = imgEl.naturalWidth / rect.width;
+                           const scaleY = imgEl.naturalHeight / rect.height;
+
+                           const cropX = finalStartX * scaleX;
+                           const cropY = finalStartY * scaleY;
+                           const cropW = (finalEndX - finalStartX) * scaleX;
+                           const cropH = (finalEndY - finalStartY) * scaleY;
+
+                           const canvas = document.createElement("canvas");
+                           canvas.width = cropW;
+                           canvas.height = cropH;
+                           const ctx = canvas.getContext("2d");
+                           if (!ctx) return;
+                           ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                           const base64 = canvas.toDataURL("image/jpeg", 0.9).split(",")[1];
+
+                           translateCrop({ x: cropX, y: cropY, w: cropW, h: cropH }, base64, imgEl.naturalWidth, imgEl.naturalHeight);
+                        }}
+                      >
+                         {marqueeStart && marqueeEnd && (
+                            <div style={{
+                               position: "absolute",
+                               left: Math.min(marqueeStart.x, marqueeEnd.x),
+                               top: Math.min(marqueeStart.y, marqueeEnd.y),
+                               width: Math.abs(marqueeEnd.x - marqueeStart.x),
+                               height: Math.abs(marqueeEnd.y - marqueeStart.y),
+                               border: "2px dashed #34d399",
+                               backgroundColor: "rgba(52, 211, 153, 0.2)",
+                               pointerEvents: "none"
+                            }} />
+                         )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -484,7 +664,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                   <option value="normal">✨ โหมดปกติ (ส่งภาพเต็มให้ AI - แปลได้ดีที่สุด)</option>
                   <option value="masking">🔞 โหมด 18+ (หั่นภาพหลบเซนเซอร์)</option>
                 </select>
-                {nsfwBypassMode && <div style={{ fontSize: "11px", color: "var(--accent3)", marginTop: "4px" }}>ระบบจะหั่นภาพเป็น 4 ชิ้นแล้วส่งไปแปลแยกกัน เพื่อหลบเลี่ยงการแบนจาก AI</div>}
+                {nsfwBypassMode && <div style={{ fontSize: "11px", color: "var(--accent3)", marginTop: "4px" }}>ระบบจะหั่นภาพเป็น 6 ชิ้นแล้วส่งไปแปลแยกกัน เพื่อหลบเลี่ยงการแบนจาก AI และให้อ่านง่ายขึ้น</div>}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -502,6 +682,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                   <label className="flabel">เลือก AI โมเดล</label>
                   <select className="finput fselect" value={modelPreference} onChange={e => setModelPreference(e.target.value)}>
                     <option value="auto">✨ Auto (แนะนำ)</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (ฉลาดสุด/แปลครบสุด)</option>
                     <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                     <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                     <option value="gemini-flash-lite-latest">Gemini Flash Lite (เร็วสุด)</option>
@@ -539,6 +720,39 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification for Marquee / Background translations */}
+      {!showTranslate && translationResult && (
+        <div style={{
+          position: "fixed",
+          bottom: "40px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: isTranslating ? "rgba(0,0,0,0.85)" : translationResult.includes("❌") ? "rgba(220,38,38,0.9)" : "rgba(16,185,129,0.95)",
+          color: "#fff",
+          padding: "12px 24px",
+          borderRadius: "30px",
+          zIndex: 9999,
+          boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
+        }}>
+          {isTranslating && (
+            <div style={{ 
+              width: "16px", height: "16px", 
+              border: "2px solid rgba(255,255,255,0.3)", 
+              borderTopColor: "#fff", 
+              borderRadius: "50%", 
+              animation: "spin 1s linear infinite" 
+            }} />
+          )}
+          <span style={{ fontSize: "14px", fontWeight: 600, letterSpacing: "0.2px" }}>{translationResult}</span>
         </div>
       )}
     </div>

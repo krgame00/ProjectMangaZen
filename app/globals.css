@@ -242,7 +242,7 @@ main{flex:1;padding:28px;overflow:auto;min-width:0}
 
 /* TRANSLATE OVERLAY ON IMAGE */
 .tl-overlay{position:absolute;inset:0;pointer-events:none;border-radius:3px}
-.tl-bubble{position:absolute;background:rgba(13,200,120,.92);color:#fff;font-size:12px;font-weight:500;line-height:1.5;padding:5px 9px;border-radius:6px;max-width:200px;text-align:center;pointer-events:all;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:background .2s;word-break:break-word}
+.tl-bubble{position:absolute;background:rgba(13,200,120,.92);color:#fff;font-size:12px;font-weight:500;line-height:1.5;padding:5px 9px;border-radius:6px;max-width:200px;text-align:center;pointer-events:all;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:background .2s;word-break:keep-all;overflow-wrap:break-word;line-break:strict;white-space:pre-wrap}
 .tl-bubble:hover{background:rgba(5,150,90,.95)}
 .tl-bubble-list{background:rgba(20,20,35,.92);border:1px solid rgba(52,211,153,.3);color:var(--accent3);font-size:12px;padding:5px 9px;border-radius:6px;max-width:260px;line-height:1.6;pointer-events:all}
 .tl-banner{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,transparent 100%);padding:12px 16px 10px;display:flex;flex-direction:column;gap:4px;pointer-events:none}

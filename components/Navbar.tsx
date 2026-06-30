@@ -100,32 +100,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation */}
-      <div className="mobile-bottom-nav">
-        <Link href="/" className="mbn-item active">
-          <div className="mbn-icon">🏠</div>
-          <span>หน้าแรก</span>
-        </Link>
-        <div className="mbn-item" onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} style={{ cursor: "pointer" }}>
-          <div className="mbn-icon">🔍</div>
-          <span>ค้นหา</span>
-        </div>
-        <Link href="/favorites" className="mbn-item">
-          <div className="mbn-icon">❤️</div>
-          <span>ติดตาม</span>
-        </Link>
-        {session ? (
-          <Link href="/profile" className="mbn-item">
-            <div className="mbn-icon">👤</div>
-            <span>โปรไฟล์</span>
-          </Link>
-        ) : (
-          <Link href="/login" className="mbn-item">
-            <div className="mbn-icon">🔑</div>
-            <span>เข้าสู่ระบบ</span>
-          </Link>
-        )}
-      </div>
 
       <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </>

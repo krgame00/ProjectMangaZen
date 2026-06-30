@@ -57,8 +57,8 @@ export const applyTranslationOverlay = (
       let tw = rawW;
       let th = rawH;
 
-      tw = Math.max(4, Math.min(tw, 45)); 
-      th = Math.max(4, Math.min(th, 35)); 
+      tw = Math.max(12, Math.min(tw, 60)); // increased min from 4 to 12
+      th = Math.max(6, Math.min(th, 45));  // increased min from 4 to 6
 
       const cx = (tx / 100) * iw;
       const cy = (ty / 100) * ih;
@@ -107,6 +107,64 @@ export const applyTranslationOverlay = (
       };
 
       const renderBubble = () => {
+        // --- Calculate Text Wrap and Auto-expand Height BEFORE drawing background ---
+        let maxW = currentBw;
+        let maxH = currentBh;
+
+        const wrap = (fs: number) => {
+          // Dummy context just for measuring text
+          const tempCanvas = document.createElement("canvas");
+          const tempCtx = tempCanvas.getContext("2d")!;
+          tempCtx.font = `bold ${fs}px Itim`;
+          let wds: string[] = [];
+          if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+            const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+            wds = Array.from(segmenter.segment(text)).map(s => s.segment);
+          } else {
+            wds = text.split(/\s+/);
+          }
+
+          const res: string[] = [];
+          let cur = "";
+          for (const w of wds) {
+            const test = cur + w;
+            if (tempCtx.measureText(test).width > maxW && cur) { 
+              res.push(cur); 
+              cur = w.trimStart(); 
+            }
+            else cur = test;
+          }
+          if (cur) res.push(cur);
+          
+          const finalRes: string[] = [];
+          for (const ln of res) {
+            if (tempCtx.measureText(ln).width > maxW) {
+              let c2 = "";
+              for (const c of [...ln]) {
+                if (tempCtx.measureText(c2 + c).width > maxW) { finalRes.push(c2); c2 = c; }
+                else c2 += c;
+              }
+              if (c2) finalRes.push(c2);
+            } else {
+              finalRes.push(ln);
+            }
+          }
+          return finalRes;
+        };
+
+        let fs = Math.max(14, Math.min(28, currentBh * 0.45)); // Minimum 14px for mobile readability
+        let lines2: string[] = [];
+        for (; fs >= 14; fs--) {
+          lines2 = wrap(fs);
+          if (lines2.length * (fs * 1.3) <= maxH) break;
+        }
+
+        const requiredH = lines2.length * (fs * 1.3);
+        if (requiredH > currentBh) {
+           currentBh = requiredH; // Expand bubble to fit readable text!
+        }
+
+        // --- Render Background ---
         wrapper.style.left = `${currentBx}px`;
         wrapper.style.top = `${currentBy}px`;
         wrapper.style.width = `${currentBw}px`;
@@ -170,42 +228,9 @@ export const applyTranslationOverlay = (
         ctx.stroke();
         ctx.restore();
 
-        const maxW = currentBw;
-        const maxH = currentBh;
-
-        const wrap = (fs: number) => {
-          ctx.font = `bold ${fs}px Itim`;
-          const wds = text.split(/\s+/);
-          const lines = []; let cur = "";
-          for (const w of wds) {
-            const test = cur ? cur + " " + w : w;
-            if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
-            else cur = test;
-          }
-          if (cur) lines.push(cur);
-          
-          const res: string[] = [];
-          for (const ln of lines) {
-            if (ctx.measureText(ln).width > maxW) {
-              let c2 = "";
-              for (const c of [...ln]) {
-                if (ctx.measureText(c2 + c).width > maxW) { res.push(c2); c2 = c; }
-                else c2 += c;
-              }
-              if (c2) res.push(c2);
-            } else {
-              res.push(ln);
-            }
-          }
-          return res;
-        };
-
-        let fs = Math.max(12, Math.min(26, currentBh * 0.4)); 
-        let lines2: string[] = [];
-        for (; fs >= 8; fs--) {
-          lines2 = wrap(fs);
-          if (lines2.length * (fs * 1.3) <= maxH) break;
-        }
+        // Text has already been wrapped.
+        // We use the previously calculated `lines2` and `fs`.
+        // No need to wrap it again!
         
         ctx.font = `bold ${fs}px Itim`;
         ctx.textAlign = "center";
