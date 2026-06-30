@@ -707,7 +707,7 @@ export default function ReaderUI({ mangaId, chapterId, mangaTitle, chapterTitle,
                   boxShadow: "0 4px 12px rgba(52,211,153,0.3)",
                   transition: "all 0.2s"
                 }}
-                onClick={handleTranslate}
+                onClick={() => handleTranslate(true)}
                 disabled={isTranslating}
               >
                 {isTranslating ? "กำลังแปล..." : "✨ แปลหน้านี้ด้วย Gemini"}

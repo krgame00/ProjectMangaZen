@@ -216,7 +216,7 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to translate");
       
-      let parsed = null;
+      let parsed = data;
       if (!parsed || !Array.isArray(parsed.bubbles)) { 
         setTranslationResult("❌ ไม่พบข้อความในหน้านี้"); 
         setIsTranslating(false);
