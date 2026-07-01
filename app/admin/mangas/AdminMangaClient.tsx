@@ -127,26 +127,40 @@ export default function AdminMangaClient({ initialMangas, initialSearch }: { ini
 
   const handleExecuteSync = async () => {
     setSyncing(true);
-    const toastId = toast.loading("กำลังดึงข้อมูล...");
+    const toastId = toast.loading("กำลังเตรียมซิงค์ข้อมูล...");
     
     try {
-      const res = await fetch("/api/admin/drive-sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: previewItems })
-      });
-      const data = await res.json();
+      const itemsToProcess = previewItems.filter(item => item.action !== "skip");
       
-      if (res.ok) {
-        toast.success(data.message, { id: toastId });
-        setShowSyncModal(false);
-        setSyncUrl("");
-        setPreviewMode(false);
-        setPreviewItems([]);
-        router.refresh();
-      } else {
-        throw new Error(data.message);
+      if (itemsToProcess.length === 0) {
+        toast.error("ไม่มีรายการที่ต้องซิงค์", { id: toastId });
+        setSyncing(false);
+        return;
       }
+      
+      for (let i = 0; i < itemsToProcess.length; i++) {
+        toast.loading(`กำลังซิงค์ไฟล์ ${i + 1} จาก ${itemsToProcess.length}...`, { id: toastId });
+        
+        const res = await fetch("/api/admin/drive-sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: [itemsToProcess[i]] })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.message || `ซิงค์ล้มเหลวที่ไฟล์ ${itemsToProcess[i].name}`);
+        }
+      }
+      
+      toast.success(`ซิงค์สำเร็จเรียบร้อยทั้งหมด ${itemsToProcess.length} รายการ!`, { id: toastId });
+      setShowSyncModal(false);
+      setSyncUrl("");
+      setPreviewMode(false);
+      setPreviewItems([]);
+      router.refresh();
+      
     } catch (e: any) {
       toast.error(e.message || "การซิงค์ล้มเหลว", { id: toastId });
     } finally {
