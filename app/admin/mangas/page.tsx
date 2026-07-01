@@ -24,5 +24,7 @@ export default async function AdminMangasPage({ searchParams }: { searchParams: 
     orderBy: { createdAt: "desc" },
   });
 
-  return <AdminMangaClient initialMangas={mangas} initialSearch={searchQuery} />;
+  const plainMangas = JSON.parse(JSON.stringify(mangas));
+
+  return <AdminMangaClient initialMangas={plainMangas} initialSearch={searchQuery} />;
 }

@@ -38,13 +38,13 @@ export default async function AdminUsers() {
                 <td style={{ padding: "12px 16px", fontWeight: 600 }}>{user.name}</td>
                 <td style={{ padding: "12px 16px" }}>{user.email}</td>
                 <td style={{ padding: "12px 16px" }}>
-                  <UserRoleSelect user={user} />
+                  <UserRoleSelect userId={user.id} currentRole={user.role} />
                 </td>
                 <td style={{ padding: "12px 16px", color: "var(--text3)" }}>
                   {new Date(user.createdAt).toLocaleDateString("th-TH")}
                 </td>
                 <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                  <DeleteUserButton user={user} />
+                  <DeleteUserButton userId={user.id} email={user.email} />
                 </td>
               </tr>
             ))}

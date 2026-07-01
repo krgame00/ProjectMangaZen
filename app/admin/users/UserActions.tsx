@@ -4,12 +4,12 @@ import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { updateUserRoleAction, deleteUserAction } from "@/app/actions/admin";
 
-export function UserRoleSelect({ user }: { user: any }) {
+export function UserRoleSelect({ userId, currentRole }: { userId: string, currentRole: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleRoleChange = (newRole: string) => {
     startTransition(async () => {
-      const res = await updateUserRoleAction(user.id, newRole);
+      const res = await updateUserRoleAction(userId, newRole);
       if (res.success) {
         toast.success("เปลี่ยนสิทธิ์สำเร็จ");
       } else {
@@ -20,12 +20,12 @@ export function UserRoleSelect({ user }: { user: any }) {
 
   return (
     <select
-      value={user.role}
+      value={currentRole}
       onChange={(e) => handleRoleChange(e.target.value)}
       disabled={isPending}
       style={{
         background: "var(--bg)", border: "1px solid var(--border)",
-        color: user.role === "admin" ? "var(--accent3)" : "var(--text)",
+        color: currentRole === "admin" ? "var(--accent3)" : "var(--text)",
         padding: "4px 8px", borderRadius: "6px", outline: "none",
         opacity: isPending ? 0.5 : 1
       }}
@@ -36,14 +36,14 @@ export function UserRoleSelect({ user }: { user: any }) {
   );
 }
 
-export function DeleteUserButton({ user }: { user: any }) {
+export function DeleteUserButton({ userId, email }: { userId: string, email: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (!confirm(`ยืนยันการลบบัญชีผู้ใช้ "${user.email}"?`)) return;
+    if (!confirm(`ยืนยันการลบบัญชีผู้ใช้ "${email}"?`)) return;
 
     startTransition(async () => {
-      const res = await deleteUserAction(user.id);
+      const res = await deleteUserAction(userId);
       if (res.success) {
         toast.success("ลบผู้ใช้สำเร็จ");
       } else {
