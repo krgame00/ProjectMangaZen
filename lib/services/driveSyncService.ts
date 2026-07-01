@@ -104,15 +104,26 @@ export async function processFolder(file: any, manga: any) {
         orderBy: "name",
       });
 
-      const images = imagesRes.data.files || [];
+      const chapterImages = imagesRes.data.files || [];
       const pagesUrls = [];
-      for (const img of images) {
-        try {
-          const tgId = await uploadToTelegram(img.id!);
-          pagesUrls.push(`/api/proxy/telegram?fileId=${tgId}`);
-        } catch (err: any) {
-          console.error(`Failed to upload ${img.id} to Telegram during sync:`, err.message);
-          pagesUrls.push(`/api/proxy/drive?id=${img.id}`); 
+      // อัปโหลดรูปแบบขนาน (Concurrent) ทีละ 5 ไฟล์ เพื่อความเร็วและป้องกันการโดนแบน (Rate Limit)
+      const batchSize = 5;
+      for (let i = 0; i < chapterImages.length; i += batchSize) {
+        const batch = chapterImages.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (img) => {
+            try {
+              const tgId = await uploadToTelegram(img.id!);
+              return { url: `/api/proxy/telegram?fileId=${tgId}` };
+            } catch (err: any) {
+              console.error(`Failed to upload ${img.id} to Telegram during sync:`, err.message);
+              return { url: `/api/proxy/drive?id=${img.id}` };
+            }
+          })
+        );
+        
+        for (const res of batchResults) {
+          pagesUrls.push(res.url);
         }
       }
 
