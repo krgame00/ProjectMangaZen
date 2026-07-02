@@ -80,7 +80,9 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
     try {
       const pageUrl = pages[currentPage];
       const resImg = await fetch(pageUrl);
+      if (!resImg.ok) throw new Error(`ไม่สามารถโหลดรูปภาพได้ (HTTP ${resImg.status})`);
       const blob = await resImg.blob();
+      const actualMimeType = blob.type && blob.type.startsWith('image/') ? blob.type : "image/jpeg";
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
@@ -210,7 +212,7 @@ export function useTranslation({ chapterId, currentPage, pages, viewMode }: UseT
       const res = await fetch("/api/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mimeType: "image/jpeg", targetLang, modelPreference })
+        body: JSON.stringify({ imageBase64: base64, mimeType: actualMimeType, targetLang, modelPreference })
       });
 
       const data = await res.json();
